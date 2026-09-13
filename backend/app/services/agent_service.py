@@ -11,6 +11,13 @@ from app.models.message import Message
 from app.models.session import Session
 from app.services.retrieval_service import search_transcript_chunks
 from app.services.llm_provider import LLMProvider, get_llm_provider
+from app.services.skill_router import skill_router, Ship30Skill
+from app.skills.ship30 import (
+    build_ship30_system_prompt,
+    CONTENT_TYPE_ESSAY,
+    ESSAY_MIN_WORDS,
+    ESSAY_MAX_WORDS,
+)
 from app.exceptions import (
     AppError,
     SessionNotFoundError,
@@ -27,7 +34,7 @@ REFUSAL_MESSAGE = (
     "I couldn't find enough relevant material in Lenny's Podcast transcripts to answer that reliably."
 )
 
-# System prompt establishing strict grounding and prompt-injection trust boundary
+# Base system prompt establishing strict grounding and prompt-injection trust boundary
 SYSTEM_INSTRUCTION = """You are the Lenny Growth Assistant, an authoritative AI advisor for product managers and growth professionals.
 
 STRICT GROUNDING POLICY:
@@ -107,6 +114,28 @@ def get_conversation_history(
     return history
 
 
+def build_system_prompt(skill_name: str, content_type: Optional[str] = None) -> str:
+    """Build the final system prompt for a given skill.
+
+    The base SYSTEM_INSTRUCTION (strict grounding policy and prompt-injection
+    boundary) is always included first.  For the Ship30 skill, additional
+    writing principles and structural guidance are appended WITHOUT weakening
+    the grounding constraints.
+
+    Args:
+        skill_name: The resolved skill name (e.g. 'chat', 'ship30').
+        content_type: For the ship30 skill, the specific content type
+            (essay, linkedin, thread, insight). Defaults to essay.
+
+    Returns:
+        Complete system prompt string to pass to the reasoning provider.
+    """
+    if skill_name == "ship30":
+        ct = content_type or CONTENT_TYPE_ESSAY
+        return SYSTEM_INSTRUCTION + build_ship30_system_prompt(ct)
+    return SYSTEM_INSTRUCTION
+
+
 async def process_chat_message(
     db: DbSession,
     session_id: UUID,
@@ -114,19 +143,21 @@ async def process_chat_message(
     provider: Optional[LLMProvider] = None,
     relevance_threshold: Optional[float] = None,
     history_limit: Optional[int] = None,
+    explicit_skill: Optional[str] = None,
 ) -> AsyncGenerator[str, None]:
     """Execute the deterministic retrieval-first grounded agent pipeline and stream SSE events.
 
     Authoritative Pipeline Flow:
     1. Verify session exists
-    2. Persist user message to DB
-    3. Run deterministic retrieval (ALWAYS runs first; not optional for model)
-    4. Evaluate individual chunk relevance against threshold (distance <= threshold)
-    5. If 0 eligible chunks: yield refusal tokens, persist refusal assistant message, terminate (0 model calls)
-    6. If eligible chunks exist: construct grounded prompt with delimited untrusted evidence + session history
-    7. Invoke active reasoning provider and stream generated tokens
-    8. Upon successful generation completion: persist assistant message with structured citations
-    9. Yield 'done' SSE event with persisted message ID and citations
+    2. Resolve skill via backend-authoritative router
+    3. Persist user message to DB
+    4. Run deterministic retrieval (ALWAYS runs first; not optional for model)
+    5. Evaluate individual chunk relevance against threshold (distance <= threshold)
+    6. If 0 eligible chunks: yield refusal tokens, persist refusal assistant message, terminate (0 model calls)
+    7. If eligible chunks exist: construct grounded prompt with delimited untrusted evidence + session history
+    8. Invoke active reasoning provider with skill-appropriate system prompt and stream generated tokens
+    9. Upon successful generation completion: persist assistant message with structured citations
+    10. Yield 'done' SSE event with persisted message ID, citations, and resolved skill metadata
     """
     start_time = time.time()
     sid_str = str(session_id)
@@ -142,6 +173,15 @@ async def process_chat_message(
     )
     llm = provider or get_llm_provider()
 
+    # Step 2: Backend-authoritative skill routing
+    routed_skill = skill_router.route(user_content, explicit_skill=explicit_skill)
+    skill_name = routed_skill.name
+
+    # Detect content type for Ship30 skill
+    content_type: Optional[str] = None
+    if skill_name == "ship30" and isinstance(routed_skill, Ship30Skill):
+        content_type = routed_skill.detect_content_type(user_content)
+
     logger.info(
         "agent_request_started",
         extra={
@@ -149,6 +189,8 @@ async def process_chat_message(
             "provider": llm.provider_name,
             "model": llm.model_name,
             "threshold": threshold,
+            "skill": skill_name,
+            "content_type": content_type,
         },
     )
 
@@ -161,7 +203,7 @@ async def process_chat_message(
         )
         return
 
-    # Step 2: Persist user message immediately
+    # Step 3: Persist user message immediately
     user_msg = Message(
         session_id=session_id,
         role="user",
@@ -172,7 +214,7 @@ async def process_chat_message(
     db.commit()
     db.refresh(user_msg)
 
-    # Step 3: Deterministic retrieval ALWAYS runs
+    # Step 4: Deterministic retrieval ALWAYS runs
     logger.info("retrieval_started", extra={"session_id": sid_str, "query": user_content[:100]})
     try:
         retrieved_chunks = search_transcript_chunks(db, query=user_content, top_k=5)
@@ -195,12 +237,12 @@ async def process_chat_message(
         },
     )
 
-    # Step 4: Individual chunk relevance gate (distance <= threshold)
+    # Step 5: Individual chunk relevance gate (distance <= threshold)
     # Each chunk must independently pass the threshold.
     eligible_chunks = [c for c in retrieved_chunks if c["distance"] <= threshold]
     eligible_count = len(eligible_chunks)
 
-    # Step 5: Refusal if no eligible evidence (0 model invocations)
+    # Step 6: Refusal if no eligible evidence (0 model invocations)
     if eligible_count == 0:
         logger.info(
             "relevance_check_failed",
@@ -284,7 +326,7 @@ async def process_chat_message(
         })
 
 
-    # Step 6: Construct context with bounded session history and delimited evidence
+    # Step 7: Construct context with bounded session history and delimited evidence
     evidence_block = build_evidence_context(eligible_chunks)
 
     # Retrieve previous conversation context (bounded to history_limit messages)
@@ -302,9 +344,19 @@ async def process_chat_message(
         f"{evidence_block}\n\n"
         f"User Question: {user_content}"
     )
+    if skill_name == "ship30" and content_type == CONTENT_TYPE_ESSAY:
+        current_turn_prompt += (
+            f"\n\n[Instruction: Write a comprehensive, publication-ready Ship 30 for 30 essay following the 8-section structure. "
+            f"You MUST write 2 to 3 substantive paragraphs for EVERY ONE of the 8 sections (18–22 total paragraphs across the essay) "
+            f"so that the total essay length falls strictly within the required {ESSAY_MIN_WORDS}–{ESSAY_MAX_WORDS} word range (target: ~1,250 words). "
+            f"Do not write single-paragraph sections, do not truncate, and do not conclude early.]"
+        )
     llm_messages.append({"role": "user", "content": current_turn_prompt})
 
-    # Step 7: Invoke reasoning provider and stream generated tokens
+    # Build skill-appropriate system prompt (grounding is always preserved)
+    effective_system_prompt = build_system_prompt(skill_name, content_type)
+
+    # Step 8: Invoke reasoning provider and stream generated tokens
     logger.info(
         "agent_generation_started",
         extra={
@@ -312,13 +364,14 @@ async def process_chat_message(
             "provider": llm.provider_name,
             "model": llm.model_name,
             "evidence_chunk_count": eligible_count,
+            "skill": skill_name,
         },
     )
 
     accumulated_content = []
     try:
         async for token in llm.stream_chat(
-            system_prompt=SYSTEM_INSTRUCTION,
+            system_prompt=effective_system_prompt,
             messages=llm_messages,
         ):
             accumulated_content.append(token)
@@ -350,13 +403,17 @@ async def process_chat_message(
         )
         return
 
-    # Step 8: Persist completed assistant message only upon successful completion
+    # Step 9: Persist completed assistant message only upon successful completion
     try:
         assistant_msg = Message(
             session_id=session_id,
             role="assistant",
             content=full_response,
-            message_metadata={"citations": citations},
+            message_metadata={
+                "citations": citations,
+                "skill": skill_name,
+                "content_type": content_type,
+            },
         )
         db.add(assistant_msg)
         db.commit()
@@ -368,6 +425,7 @@ async def process_chat_message(
                 "session_id": sid_str,
                 "message_id": str(assistant_msg.id),
                 "citations_count": len(citations),
+                "skill": skill_name,
             },
         )
     except Exception as e:
@@ -379,13 +437,15 @@ async def process_chat_message(
         )
         return
 
-    # Step 9: Emit 'done' SSE event
+    # Step 10: Emit 'done' SSE event with skill metadata
     yield format_sse(
         "done",
         {
             "message_id": str(assistant_msg.id),
             "citations": citations,
             "status": "completed",
+            "skill": skill_name,
+            "content_type": content_type,
         },
     )
 
@@ -396,5 +456,6 @@ async def process_chat_message(
             "duration": round(time.time() - start_time, 3),
             "citations_count": len(citations),
             "status": "completed",
+            "skill": skill_name,
         },
     )

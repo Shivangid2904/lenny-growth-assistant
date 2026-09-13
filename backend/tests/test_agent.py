@@ -12,6 +12,7 @@ from app.services.agent_service import (
     REFUSAL_MESSAGE,
     SYSTEM_INSTRUCTION,
     build_evidence_context,
+    build_system_prompt,
     get_conversation_history,
 )
 from app.services.llm_provider import (
@@ -20,7 +21,7 @@ from app.services.llm_provider import (
     FakeLLMProvider,
     get_llm_provider,
 )
-from app.services.skill_router import skill_router, ChatSkill, Ship30SkillStub, ArtifactSkillStub
+from app.services.skill_router import skill_router, ChatSkill, Ship30Skill, ArtifactSkillStub
 from app.exceptions import (
     ClaudeNotConfiguredError,
     OllamaUnavailableError,
@@ -530,6 +531,10 @@ def test_skill_router_registration_and_routing():
     assert "ship30" in skill_names
     assert "artifact" in skill_names
 
+    # ship30 is now a real skill, not a stub
+    ship30_meta = next(s for s in skills if s["name"] == "ship30")
+    assert ship30_meta["is_stub"] is False
+
     # Default routing returns chat
     s1 = skill_router.route("Explain product market fit")
     assert s1.name == "chat"
@@ -538,7 +543,7 @@ def test_skill_router_registration_and_routing():
     # Inferred routing detects Ship 30 intent
     s2 = skill_router.route("Write an atomic essay using Ship 30 style")
     assert s2.name == "ship30"
-    assert isinstance(s2, Ship30SkillStub)
+    assert isinstance(s2, Ship30Skill)
 
     # Explicit routing works
     s3 = skill_router.route("Anything", explicit_skill="artifact")
@@ -547,3 +552,4 @@ def test_skill_router_registration_and_routing():
     # Arbitrary functions cannot be invoked
     with pytest.raises(ValueError, match="Invalid skill"):
         skill_router.route("Anything", explicit_skill="__import__('os').system")
+

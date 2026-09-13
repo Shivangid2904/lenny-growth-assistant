@@ -33,9 +33,10 @@ from app.services.agent_service import (
     REFUSAL_MESSAGE,
     SYSTEM_INSTRUCTION,
     build_evidence_context,
+    build_system_prompt,
     get_conversation_history,
 )
-from app.services.skill_router import skill_router, Skill, ChatSkill, Ship30SkillStub, ArtifactSkillStub
+from app.services.skill_router import skill_router, Skill, ChatSkill, Ship30Skill, ArtifactSkillStub
 
 __all__ = [
     "create_session",
@@ -57,11 +58,12 @@ __all__ = [
     "REFUSAL_MESSAGE",
     "SYSTEM_INSTRUCTION",
     "build_evidence_context",
+    "build_system_prompt",
     "get_conversation_history",
     "skill_router",
     "Skill",
     "ChatSkill",
-    "Ship30SkillStub",
+    "Ship30Skill",
     "ArtifactSkillStub",
 ]
 
