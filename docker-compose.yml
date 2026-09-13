@@ -1,9 +1,23 @@
-# Docker Compose skeleton for Lenny Growth Assistant
-# Service definitions will be configured as components are implemented.
-
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: lenny_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: lenny_growth
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lenny_growth"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
-    # Service implementation will be configured during backend setup
     image: hello-world
     # build:
     #   context: ./backend
@@ -13,7 +27,6 @@ services:
     #   - .env
 
   frontend:
-    # Service implementation will be configured during frontend setup
     image: hello-world
     # build:
     #   context: ./frontend
@@ -21,3 +34,6 @@ services:
     #   - "3000:3000"
     # env_file:
     #   - .env
+
+volumes:
+  postgres_data:
