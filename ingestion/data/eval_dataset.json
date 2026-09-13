@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "description": "Manually labeled retrieval evaluation dataset for RAG threshold calibration.",
+    "total_questions": 15,
+    "answerable_count": 10,
+    "unanswerable_count": 5,
+    "labeling_method": "Manual inspection of the 15 selected real episode transcripts from https://github.com/ChatPRD/lennys-podcast-transcripts (commit be8ab89a890a833cbba2c892178f823fff178c65). Labels are based on actual transcript content, not LLM inference.",
+    "rationale_policy": "Rationale text paraphrases transcript content. No more than ~15 words of verbatim text are quoted.",
+    "corpus_commit": "be8ab89a890a833cbba2c892178f823fff178c65"
+  },
+  "questions": [
+    {
+      "id": "Q01",
+      "question": "What is the 'four fits' framework and how does it relate to product-market fit?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "brian-balfour",
+      "expected_chunk_approx": "early sections discussing four fits",
+      "rationale": "Brian Balfour's episode covers his framework of four interrelated fits (market, product, channel, model) that must all align for sustainable growth; he argues that product-market fit alone is insufficient."
+    },
+    {
+      "id": "Q02",
+      "question": "How does A/B testing fail when companies run too many experiments simultaneously?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "ronny-kohavi",
+      "expected_chunk_approx": "sections on A/B test pitfalls and interaction effects",
+      "rationale": "Ronny Kohavi's episode discusses experiment interaction effects, novelty effects, and why running overlapping experiments can produce misleading signals; he references a rule about \"trustworthy\" controlled experiments."
+    },
+    {
+      "id": "Q03",
+      "question": "What is the Adjacent User Theory and how should product teams use it?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "bangaly-kaba",
+      "expected_chunk_approx": "sections defining adjacent users and how to find them",
+      "rationale": "Bangaly Kaba's episode introduces the Adjacent User Theory, describing it as a method for identifying users who are aware of a product but not fully adopting it, and explaining how Instagram used this to break through a growth plateau."
+    },
+    {
+      "id": "Q04",
+      "question": "What are the key differences between product-led growth and sales-led growth for B2B companies?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "elena-verna",
+      "expected_chunk_approx": "PLG vs sales-led sections",
+      "rationale": "Elena Verna's episode provides a systematic comparison of PLG vs sales-led motions, covering self-serve acquisition, product-led sales overlays, and how Miro and Amplitude structured their hybrid go-to-market approaches."
+    },
+    {
+      "id": "Q05",
+      "question": "How should a startup think about pricing before building a product?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "madhavan-ramanujam",
+      "expected_chunk_approx": "sections on willingness-to-pay research before building",
+      "rationale": "Madhavan Ramanujam's episode explicitly argues for conducting willingness-to-pay research before building features, describing the four monetization outcomes and how to structure pricing conversations with potential customers."
+    },
+    {
+      "id": "Q06",
+      "question": "What is Jobs to Be Done theory and how do you apply it to reduce churn?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "bob-moesta",
+      "expected_chunk_approx": "sections on forces of progress and JTBD theory",
+      "rationale": "Bob Moesta's episode covers the JTBD framework's forces of progress model (push, pull, anxiety, inertia) and explains how understanding the underlying struggle customers are trying to resolve helps product teams address churn drivers."
+    },
+    {
+      "id": "Q07",
+      "question": "What makes a high-performing growth team and how do you structure one?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "adam-fishman",
+      "expected_chunk_approx": "sections on growth team structure and hiring",
+      "rationale": "Adam Fishman's episode, based on his experience at Lyft and Patreon, describes growth team composition, how to embed growth teams within product organizations, and the difference between a dedicated growth pod and a central growth function."
+    },
+    {
+      "id": "Q08",
+      "question": "What are the most common growth tactics that never work and why?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "elena-verna",
+      "expected_chunk_approx": "sections enumerating failed growth tactics",
+      "rationale": "Elena Verna's episode is explicitly framed around ten growth tactics that consistently fail, including tactics like viral incentives without a viral product and growth hacks that undermine long-term retention."
+    },
+    {
+      "id": "Q09",
+      "question": "How does the DHM framework help product managers articulate product strategy?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "gibson-biddle",
+      "expected_chunk_approx": "sections explaining Delight, Hard-to-copy, Margin-enhancing model",
+      "rationale": "Gibson Biddle's episode walks through the DHM (Delight, Hard-to-copy, Margin-enhancing) strategy framework, describing how Netflix used proxy metrics and strategy bets to operationalize this model at scale."
+    },
+    {
+      "id": "Q10",
+      "question": "What is the best marketing automation platform to use for a Series A SaaS startup?",
+      "label": "unanswerable_from_corpus",
+      "expected_supporting_episode": null,
+      "expected_chunk_approx": null,
+      "rationale": "The 15 selected episodes do not review or recommend specific marketing automation tools; the corpus covers strategic frameworks and growth principles, not vendor comparisons or software purchasing decisions."
+    },
+    {
+      "id": "Q11",
+      "question": "How did TikTok's algorithm achieve viral growth in 2019-2020?",
+      "label": "unanswerable_from_corpus",
+      "expected_supporting_episode": null,
+      "expected_chunk_approx": null,
+      "rationale": "None of the 15 selected episodes substantively covers TikTok's specific algorithmic recommendation growth or its 2019-2020 viral trajectory. The corpus covers general growth frameworks, not TikTok case study specifics."
+    },
+    {
+      "id": "Q12",
+      "question": "What programming language should I use to build a mobile app?",
+      "label": "unanswerable_from_corpus",
+      "expected_supporting_episode": null,
+      "expected_chunk_approx": null,
+      "rationale": "The corpus contains product and growth strategy content; none of the selected episodes addresses mobile app technology stack selection or programming language tradeoffs."
+    },
+    {
+      "id": "Q13",
+      "question": "How do you measure and improve the activation rate of a new user onboarding flow?",
+      "label": "answerable_from_corpus",
+      "expected_supporting_episode": "bangaly-kaba",
+      "expected_chunk_approx": "activation metrics and onboarding improvement sections",
+      "rationale": "Both Bangaly Kaba's and Adam Fishman's episodes address onboarding activation measurement; Bangaly Kaba specifically discusses defining a quantitative activation event and using cohort analysis to track improvements across Instagram's user segments."
+    },
+    {
+      "id": "Q14",
+      "question": "What is the correct calorie intake for building muscle as an athlete?",
+      "label": "unanswerable_from_corpus",
+      "expected_supporting_episode": null,
+      "expected_chunk_approx": null,
+      "rationale": "The corpus contains exclusively product management and growth content. Nutrition science and athletic performance are entirely outside the corpus scope."
+    },
+    {
+      "id": "Q15",
+      "question": "How should a product team decide between running more A/B tests versus qualitative user research?",
+      "label": "unanswerable_from_corpus",
+      "expected_supporting_episode": null,
+      "expected_chunk_approx": null,
+      "rationale": "While Ronny Kohavi covers A/B testing extensively and other episodes touch on user research, none of the 15 selected episodes directly addresses how to decide between quantitative experimentation and qualitative research as complementary or competing methods. This meta-question about research prioritization is not directly answered in the selected corpus; retrievable evidence would be indirect and insufficient for a grounded answer."
+    }
+  ]
+}

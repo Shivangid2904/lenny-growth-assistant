@@ -30,15 +30,38 @@ Top-k Nearest Neighbor Chunks + Episode Citations
 
 ```text
 ingestion/
-├── README.md               # This documentation
+├── README.md                       # This documentation
 ├── data/
-│   └── transcripts/        # Directory for transcript files
+│   ├── corpus_manifest.json        # Episode selection manifest (committed)
+│   ├── eval_dataset.json           # Labeled retrieval evaluation set (committed)
+│   ├── eval_results.json           # Retrieval eval output (committed after eval run)
+│   ├── raw_repo/                   # Cloned source repo — NOT committed (gitignored)
+│   │   └── episodes/
+│   │       ├── brian-balfour/transcript.md
+│   │       └── ...
+│   └── transcripts/                # Legacy fixture files
 │       ├── fixture_brian_balfour_retention.json
 │       ├── fixture_casey_winters_loops.json
 │       └── fixture_elena_verna_plg.json
 └── scripts/
-    └── ingest.py           # Standalone CLI ingestion script
+    ├── build_manifest.py           # Generates corpus_manifest.json from raw_repo
+    ├── ingest.py                   # Legacy standalone ingestion script
+    ├── ingest_real_corpus.py       # Real corpus ingestion (uses manifest)
+    ├── run_retrieval_eval.py       # Deterministic retrieval evaluation
+    ├── select_corpus.py            # Episode selection exploration script
+    └── verify_checkpoint4.py      # End-to-end Checkpoint 4 verification
 ```
+
+### Authoritative Transcript Source
+
+Raw transcripts come from:
+- **Repository**: https://github.com/ChatPRD/lennys-podcast-transcripts
+- **Pinned commit**: `be8ab89a890a833cbba2c892178f823fff178c65`
+- **Clone path**: `ingestion/data/raw_repo/` (gitignored — not committed)
+- **Episode selection**: 15 episodes documented in `ingestion/data/corpus_manifest.json`
+
+> **Git policy**: Raw transcript files are never committed to this repository.
+> Only the manifest, evaluation dataset, and evaluation results are tracked.
 
 ---
 

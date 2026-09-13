@@ -52,6 +52,17 @@ out/
 !ingestion/data/
 chroma_db/
 
+# Raw Transcript Source Files (Authoritative source: ChatPRD/lennys-podcast-transcripts)
+# Raw transcripts are not committed to git; commit only manifests, metadata, and eval datasets
+ingestion/data/raw/
+ingestion/data/raw_repo/
+ingestion/data/raw_transcripts/
+ingestion/raw/
+raw_transcripts/
+*.raw.txt
+*.raw.md
+
+
 # Operating System
 .DS_Store
 Thumbs.db

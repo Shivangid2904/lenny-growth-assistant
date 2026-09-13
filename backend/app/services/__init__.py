@@ -12,6 +12,15 @@ from app.services.embedding_service import (
     EmbeddingDimensionMismatchError,
 )
 from app.services.retrieval_service import search_transcript_chunks
+from app.services.ingestion_service import (
+    ingest_file,
+    ingest_directory,
+    ingest_manifest,
+    parse_transcript_file,
+    normalize_transcript,
+    chunk_transcript,
+)
+
 from app.services.llm_provider import (
     LLMProvider,
     AnthropicProvider,

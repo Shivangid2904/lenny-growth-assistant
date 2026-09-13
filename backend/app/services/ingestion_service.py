@@ -6,7 +6,7 @@ import logging
 import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from sqlalchemy import text
+from sqlalchemy import text, select, func
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 from app.models.transcript_chunk import TranscriptChunk
@@ -150,39 +150,71 @@ def chunk_transcript(
     return chunks
 
 
+import yaml
+
+
 def compute_chunk_id(episode_id: str, chunk_index: int) -> uuid.UUID:
     """Generate a deterministic UUIDv5 for idempotency."""
     return uuid.uuid5(uuid.NAMESPACE_DNS, f"lenny:{episode_id}:{chunk_index}")
 
 
-def parse_transcript_file(file_path: Path) -> Optional[Dict[str, Any]]:
-    """Load transcript metadata and text from JSON or Markdown."""
+def parse_transcript_file(
+    file_path: Path,
+    override_metadata: Optional[Dict[str, Any]] = None,
+) -> Optional[Dict[str, Any]]:
+    """Load transcript metadata and text from JSON or Markdown, supporting YAML frontmatter."""
+    override = override_metadata or {}
     if file_path.suffix.lower() == ".json":
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return {
-            "episode_id": data.get("episode_id", file_path.stem),
-            "episode_title": data.get("episode_title", file_path.stem),
-            "guest_name": data.get("guest_name"),
-            "source_url": data.get("source_url"),
+            "episode_id": override.get("episode_id") or data.get("episode_id", file_path.stem),
+            "episode_title": override.get("episode_title") or data.get("episode_title", file_path.stem),
+            "guest_name": override.get("guest_name") or data.get("guest_name"),
+            "source_url": override.get("source_url") or data.get("source_url"),
             "text": data.get("text") or data.get("content") or "",
         }
     elif file_path.suffix.lower() in (".md", ".txt"):
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
-        # Extract markdown title if available
-        title = file_path.stem.replace("-", " ").replace("_", " ").title()
-        title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
-        if title_match:
-            title = title_match.group(1).strip()
+        frontmatter = {}
+        body = content
+        if content.startswith("---"):
+            parts = content.split("---", 2)
+            if len(parts) >= 3:
+                try:
+                    frontmatter = yaml.safe_load(parts[1]) or {}
+                    body = parts[2]
+                except Exception:
+                    body = content
+
+        # Determine episode_id: if file is transcript.md, use parent directory name
+        if file_path.stem.lower() == "transcript":
+            ep_id = file_path.parent.name
+        else:
+            ep_id = file_path.stem
+
+        # Clean markdown headers from transcript body
+        cleaned_body = re.sub(r"^#+\s+.*$", "", body, flags=re.MULTILINE).strip()
+
+        title = (
+            override.get("episode_title")
+            or frontmatter.get("title")
+            or file_path.stem.replace("-", " ").replace("_", " ").title()
+        )
+        # If title has markdown h1 prefix, clean it
+        title = re.sub(r"^#\s+", "", title).strip()
+
+        guest_name = override.get("guest_name") or frontmatter.get("guest")
+        source_url = override.get("source_url") or frontmatter.get("youtube_url")
 
         return {
-            "episode_id": file_path.stem,
+            "episode_id": override.get("episode_id") or ep_id,
             "episode_title": title,
-            "guest_name": None,
-            "source_url": None,
-            "text": content,
+            "guest_name": guest_name,
+            "source_url": source_url,
+            "text": cleaned_body,
         }
     return None
 
@@ -191,11 +223,12 @@ def ingest_file(
     file_path: Path,
     db: Session,
     embedder: EmbeddingService = None,
+    override_metadata: Optional[Dict[str, Any]] = None,
     chunk_size: int = 1000,
     chunk_overlap: int = 150,
 ) -> Dict[str, Any]:
     """Ingest a single transcript file into PostgreSQL/pgvector idempotently."""
-    raw_data = parse_transcript_file(file_path)
+    raw_data = parse_transcript_file(file_path, override_metadata=override_metadata)
     if not raw_data:
         return {"file": str(file_path), "status": "skipped", "reason": "unsupported_extension", "chunks": 0}
 
@@ -203,6 +236,7 @@ def ingest_file(
     if not raw_text or not raw_text.strip():
         logger.warning("empty_transcript_skipped", extra={"file": str(file_path)})
         return {"file": str(file_path), "status": "skipped", "reason": "empty_content", "chunks": 0}
+
 
     logger.info("transcript_loaded", extra={"file": str(file_path), "episode_id": raw_data["episode_id"]})
 
@@ -218,11 +252,11 @@ def ingest_file(
 
     # 3. Embed & Upsert
     service = embedder or embedding_service
+    embeddings = service.embed_texts(chunks)
     inserted_count = 0
 
-    for idx, chunk_content in enumerate(chunks):
+    for idx, (chunk_content, embedding) in enumerate(zip(chunks, embeddings)):
         chunk_id = compute_chunk_id(raw_data["episode_id"], idx)
-        embedding = service.embed_text(chunk_content)
 
         metadata = {
             "guest_name": raw_data.get("guest_name"),
@@ -320,3 +354,102 @@ def ingest_directory(
         "duration_sec": duration_sec,
         "details": results,
     }
+
+
+def ingest_manifest(
+    manifest_path: Path,
+    raw_repo_dir: Path,
+    db: Session,
+    embedder: EmbeddingService = None,
+    refresh: bool = False,
+    skip_existing: bool = True,
+    chunk_size: int = 1000,
+    chunk_overlap: int = 150,
+) -> Dict[str, Any]:
+    """Ingest curated episodes specified in corpus_manifest.json into PostgreSQL/pgvector."""
+    start_time = time.perf_counter()
+    logger.info("manifest_ingestion_started", extra={"manifest": str(manifest_path), "refresh": refresh, "skip_existing": skip_existing})
+
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"Corpus manifest '{manifest_path}' not found.")
+
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        manifest_data = json.load(f)
+
+    episodes = manifest_data.get("episodes", [])
+    if not episodes:
+        raise ValueError(f"Corpus manifest '{manifest_path}' contains no episodes.")
+
+    if refresh:
+        db.execute(text("TRUNCATE TABLE transcript_chunks CASCADE;"))
+        db.commit()
+        logger.info("ingestion_refresh_truncated", extra={"table": "transcript_chunks"})
+
+    results = []
+    total_chunks = 0
+
+    for ep in episodes:
+        source_rel = ep.get("source_path")
+        file_path = raw_repo_dir / source_rel
+        if not file_path.exists():
+            logger.warning("episode_file_missing", extra={"file": str(file_path)})
+            results.append({
+                "episode_id": ep.get("episode_id"),
+                "status": "skipped",
+                "reason": f"file_not_found: {source_rel}",
+                "chunks": 0,
+            })
+            continue
+
+        ep_id = ep.get("episode_id")
+        if not refresh and skip_existing:
+            existing_count = db.execute(
+                select(func.count(TranscriptChunk.id)).where(TranscriptChunk.episode_id == ep_id)
+            ).scalar()
+            if existing_count > 0:
+                logger.info(
+                    "episode_already_ingested_skipped",
+                    extra={"episode_id": ep_id, "chunks": existing_count},
+                )
+                results.append({
+                    "episode_id": ep_id,
+                    "status": "skipped_already_ingested",
+                    "chunks": existing_count,
+                })
+                total_chunks += existing_count
+                continue
+
+        res = ingest_file(
+            file_path=file_path,
+            db=db,
+            embedder=embedder,
+            override_metadata={
+                "episode_id": ep.get("episode_id"),
+                "episode_title": ep.get("episode_title"),
+                "guest_name": ep.get("guest_name"),
+                "source_url": ep.get("source_url"),
+                "primary_topics": ep.get("primary_topics", []),
+            },
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+        )
+        results.append(res)
+        total_chunks += res.get("chunks", 0)
+
+    duration_sec = round(time.perf_counter() - start_time, 2)
+    logger.info(
+        "manifest_ingestion_completed",
+        extra={
+            "episodes_processed": len(episodes),
+            "total_chunks": total_chunks,
+            "duration_sec": duration_sec,
+        },
+    )
+
+    return {
+        "files_processed": len(episodes),
+        "total_chunks": total_chunks,
+        "duration_sec": duration_sec,
+        "details": results,
+    }
+

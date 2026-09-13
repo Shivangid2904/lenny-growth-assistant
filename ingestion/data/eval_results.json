@@ -1,0 +1,917 @@
+{
+  "metadata": {
+    "description": "Manually labeled retrieval evaluation dataset for RAG threshold calibration.",
+    "total_questions": 15,
+    "answerable_count": 10,
+    "unanswerable_count": 5,
+    "labeling_method": "Manual inspection of the 15 selected real episode transcripts from https://github.com/ChatPRD/lennys-podcast-transcripts (commit be8ab89a890a833cbba2c892178f823fff178c65). Labels are based on actual transcript content, not LLM inference.",
+    "rationale_policy": "Rationale text paraphrases transcript content. No more than ~15 words of verbatim text are quoted.",
+    "corpus_commit": "be8ab89a890a833cbba2c892178f823fff178c65"
+  },
+  "top_k": 5,
+  "results": [
+    {
+      "id": "Q01",
+      "question": "What is the 'four fits' framework and how does it relate to product-market fit?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "brian-balfour",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2619,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "nikhyl-singhal",
+          "episode_title": "Building a long and meaningful career | Nikhyl Singhal (Meta, Google)",
+          "chunk_index": 32,
+          "distance": 0.2619,
+          "is_relevant_episode": false,
+          "content_preview": "Lenny (00:20:19):\nAn important variable in this framework/piece of advice is product market fit. This might be too big of a question, but just, what tells you that something might have not have produc"
+        },
+        {
+          "rank": 2,
+          "episode_id": "casey-winters",
+          "episode_title": "Why most product managers are unprepared for the demands of a real startup | Casey Winters",
+          "chunk_index": 46,
+          "distance": 0.3376,
+          "is_relevant_episode": false,
+          "content_preview": "Lenny (29:41):\nIn your post on this topic you have an awesome chart of product market fit over time, illustrating the point you just made that it doesn't last and you have to keep iterating to keep yo"
+        },
+        {
+          "rank": 3,
+          "episode_id": "fixture-ep-03",
+          "episode_title": "[TEST FIXTURE] Brian Balfour on Product Market Fit and Retention Curves",
+          "chunk_index": 0,
+          "distance": 0.3401,
+          "is_relevant_episode": false,
+          "content_preview": "Welcome to this test fixture episode with Brian Balfour, CEO of Reforge and former VP of Growth at HubSpot.\n\nBrian discusses the four essential fits required for scaling: Market Product Fit, Product C"
+        },
+        {
+          "rank": 4,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 69,
+          "distance": 0.3425,
+          "is_relevant_episode": false,
+          "content_preview": "(00:51:53):\nThe way that I best be comparing it is if product has a product-market fit, which is great, that product-market fit is not going to last that product forever. They're always going to have "
+        },
+        {
+          "rank": 5,
+          "episode_id": "adam-fishman",
+          "episode_title": "How to build a high-performing growth team | Adam Fishman (Patreon, Lyft, Imperfect Foods)",
+          "chunk_index": 79,
+          "distance": 0.3813,
+          "is_relevant_episode": false,
+          "content_preview": "Adam Fishman (00:53:23):\nSo in a way it's both the product-market fit for as a candidate with the company, but then also PMF stands for people, mission and financials. And these are my three criteria."
+        }
+      ]
+    },
+    {
+      "id": "Q02",
+      "question": "How does A/B testing fail when companies run too many experiments simultaneously?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "ronny-kohavi",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2834,
+      "relevant_evidence_found": true,
+      "relevant_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 17,
+          "distance": 0.2834,
+          "is_relevant_episode": true,
+          "content_preview": "Ronny Kohavi (00:13:00):\nAnd in fact, again, there's another number I'm allowed to say. Of these experiments, 92% failed to improve the metric that we were trying to move. So only 8% of our ideas actu"
+        },
+        {
+          "rank": 2,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 31,
+          "distance": 0.3232,
+          "is_relevant_episode": true,
+          "content_preview": "Ronny Kohavi (00:25:14):\nSo you do have to have some necessary ingredient. You need to have enough units, mostly users, in order for the statistics to work out. So if you're too small, it may be too e"
+        },
+        {
+          "rank": 3,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 30,
+          "distance": 0.332,
+          "is_relevant_episode": true,
+          "content_preview": "Ronny Kohavi (00:24:21):\nYeah, this is hard. This is hard. But again, that's the value of experiments, which are this oracle that gives you the data. You may be excited about things. You may believe i"
+        },
+        {
+          "rank": 4,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 68,
+          "distance": 0.3397,
+          "is_relevant_episode": true,
+          "content_preview": "Ronny Kohavi (00:54:40):\nAnd he tells of how he ran an A/A test when there is no difference between the A and the B. And Optimizely told him that it was statistically significant too many times. Optim"
+        },
+        {
+          "rank": 5,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 32,
+          "distance": 0.3451,
+          "is_relevant_episode": true,
+          "content_preview": "Ronny Kohavi (00:25:59):\nNow, I don't think we were there at Airbnb for example. The platform at Airbnb was much less mature, and required a lot more analysts in order to interpret the results and to "
+        }
+      ]
+    },
+    {
+      "id": "Q03",
+      "question": "What is the Adjacent User Theory and how should product teams use it?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "bangaly-kaba",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2157,
+      "relevant_evidence_found": true,
+      "relevant_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 99,
+          "distance": 0.2157,
+          "is_relevant_episode": true,
+          "content_preview": "(01:03:14):\nYou mentioned this concept of adjacent user kind of adjacently, but I think it's worth spending a little more time here. It's like this term you popularized and you explained it somewhat, "
+        },
+        {
+          "rank": 2,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 103,
+          "distance": 0.2804,
+          "is_relevant_episode": true,
+          "content_preview": "(01:06:02):\nAnd then you also have to be the adjacent exactly, use the product like them and see how it's working, what's broken with it. And so at an Instacart, the adjacent user, the original user m"
+        },
+        {
+          "rank": 3,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 101,
+          "distance": 0.3707,
+          "is_relevant_episode": false,
+          "content_preview": "(01:17:31):\nThe next favorite growth framework for me comes from Bengali and that's adjacent to user theory. I think that was very powerful in terms of thinking about growth evolution. And as we talke"
+        },
+        {
+          "rank": 4,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 70,
+          "distance": 0.3807,
+          "is_relevant_episode": false,
+          "content_preview": "(00:47:04):\nSo pick the right archetype and plan to get to as close as you can to the outcome-based pricing model. That's how I would use the two-by-two. And you actually kind of see this happening wi"
+        },
+        {
+          "rank": 5,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 51,
+          "distance": 0.3904,
+          "is_relevant_episode": false,
+          "content_preview": "(00:39:57):\nSo at GitLab we actually did a bunch of analysis. We're trying to understand what is the aha moment for our new users. We ended up have something along the line of two users, two features "
+        }
+      ]
+    },
+    {
+      "id": "Q04",
+      "question": "What are the key differences between product-led growth and sales-led growth for B2B companies?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "elena-verna",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2123,
+      "relevant_evidence_found": true,
+      "relevant_rank": 4,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 11,
+          "distance": 0.2123,
+          "is_relevant_episode": false,
+          "content_preview": "Lenny (00:07:56):\nInteresting to set a little foundation. Before we get into a lot of this stuff, it'd actually be helpful just to explain what is product like growth, just simply, because people hear"
+        },
+        {
+          "rank": 2,
+          "episode_id": "casey-winters",
+          "episode_title": "Why most product managers are unprepared for the demands of a real startup | Casey Winters",
+          "chunk_index": 76,
+          "distance": 0.2281,
+          "is_relevant_episode": false,
+          "content_preview": "(48:27):\nThis concept is being dubbed, product led sales. And it's this idea that you can unify self-service loops in a B2B business, which are typically driven by product and your sales loops into on"
+        },
+        {
+          "rank": 3,
+          "episode_id": "fixture-ep-01",
+          "episode_title": "[TEST FIXTURE] Elena Verna on B2B Product-Led Growth & Sales",
+          "chunk_index": 0,
+          "distance": 0.2326,
+          "is_relevant_episode": false,
+          "content_preview": "Welcome to this test fixture episode. Today we discuss Product-Led Growth (PLG) and Product-Led Sales (PLS).\n\nElena Verna explains that PLG is fundamentally about distribution and customer acquisition"
+        },
+        {
+          "rank": 4,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 19,
+          "distance": 0.2551,
+          "is_relevant_episode": true,
+          "content_preview": "(00:13:23):\nYou're trying to have product sell itself through potentially freemium acquisition, trial acquisition or you actually having product led activation, monetization, that's when you would nee"
+        },
+        {
+          "rank": 5,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 10,
+          "distance": 0.2553,
+          "is_relevant_episode": false,
+          "content_preview": "Lenny (00:07:19):\nCool. That's kind of the way I've been seeing it. I did a few series on traditional product led growth companies, [inaudible 00:07:28]. All those guys, and they all add sales teams e"
+        }
+      ]
+    },
+    {
+      "id": "Q05",
+      "question": "How should a startup think about pricing before building a product?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "madhavan-ramanujam",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.269,
+      "relevant_evidence_found": true,
+      "relevant_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 33,
+          "distance": 0.269,
+          "is_relevant_episode": true,
+          "content_preview": "(00:22:18):\nAnd showcasing options doesn't need to be just different products. It could even be a pricing model choice. And I'd probably give a simple hack that people can try on Monday morning. I was"
+        },
+        {
+          "rank": 2,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 76,
+          "distance": 0.288,
+          "is_relevant_episode": true,
+          "content_preview": "(00:51:17):\nSo these kind of questions become more critical, and that's why the chapter on blowing up your packaging from your early days and coming up with your packaging strategy for your scale-up p"
+        },
+        {
+          "rank": 3,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 44,
+          "distance": 0.2959,
+          "is_relevant_episode": true,
+          "content_preview": "(00:29:35):\nSo the two questions that we commonly hear from AI founders is, \"How do I set the right pricing model?\" as in, \"How do I charge?\" which becomes way more important than how much you charge."
+        },
+        {
+          "rank": 4,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 41,
+          "distance": 0.298,
+          "is_relevant_episode": true,
+          "content_preview": "(00:27:24):\nSo we have various strategies that apply both for the startup and the scale-up phase. But in combination, all of those things help you articulate and architect towards profitable growth.\n\n"
+        },
+        {
+          "rank": 5,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 77,
+          "distance": 0.3097,
+          "is_relevant_episode": true,
+          "content_preview": "Madhavan Ramanujam (00:52:00):\nBack in the day, we used to say that you should revisit your pricing strategy, overall pricing model, how much you're charging at least once in two years. With AI, that'"
+        }
+      ]
+    },
+    {
+      "id": "Q06",
+      "question": "What is Jobs to Be Done theory and how do you apply it to reduce churn?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "bob-moesta",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.3169,
+      "relevant_evidence_found": true,
+      "relevant_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "bob-moesta",
+          "episode_title": "How to find work you love | Bob Moesta (Jobs-to-be-Done co-creator, author of \"Job Moves\u201d)",
+          "chunk_index": 2,
+          "distance": 0.3169,
+          "is_relevant_episode": true,
+          "content_preview": "(00:01:12):\nIn our conversation, we get deep into all aspects of the Jobs to Be Done framework. What is it, how to apply it to your product, when it's not a good fit, how to interview customers to get"
+        },
+        {
+          "rank": 2,
+          "episode_id": "bob-moesta",
+          "episode_title": "How to find work you love | Bob Moesta (Jobs-to-be-Done co-creator, author of \"Job Moves\u201d)",
+          "chunk_index": 10,
+          "distance": 0.3184,
+          "is_relevant_episode": true,
+          "content_preview": "(00:05:31):\nAnd so Jobs to Be Done is this whole premise that people hire products, they don't buy them, they hire them to make progress in their life. And if we can take a step back and look at it, w"
+        },
+        {
+          "rank": 3,
+          "episode_id": "bob-moesta",
+          "episode_title": "How to find work you love | Bob Moesta (Jobs-to-be-Done co-creator, author of \"Job Moves\u201d)",
+          "chunk_index": 88,
+          "distance": 0.3285,
+          "is_relevant_episode": true,
+          "content_preview": "(00:54:21):\nWhat I would say is there's enough people that have used it and have worked with it and have had great success with it that at some point in time, most of the people who are trying it and "
+        },
+        {
+          "rank": 4,
+          "episode_id": "bob-moesta",
+          "episode_title": "How to find work you love | Bob Moesta (Jobs-to-be-Done co-creator, author of \"Job Moves\u201d)",
+          "chunk_index": 13,
+          "distance": 0.3538,
+          "is_relevant_episode": true,
+          "content_preview": "(00:06:49):\nBut a Milky Way typically is eaten after an emotional experience, could be positive, could be negative. It's usually eaten alone, and it's taking time to regroup after this emotional thing"
+        },
+        {
+          "rank": 5,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 82,
+          "distance": 0.3637,
+          "is_relevant_episode": false,
+          "content_preview": "(00:55:58):\nProbably my second one is the price paralysis axioms. So what that means is your reluctance to do a price increase is often internal and emotional and it's not external and logical. This g"
+        }
+      ]
+    },
+    {
+      "id": "Q07",
+      "question": "What makes a high-performing growth team and how do you structure one?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "adam-fishman",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2864,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 25,
+          "distance": 0.2864,
+          "is_relevant_episode": false,
+          "content_preview": "(00:17:45):\nIt's a huge expense. ROI on it, maybe at least one to one. What you put into it, you might get that much out of it, but it's not going to be enough to create a J curve of the reacceleratio"
+        },
+        {
+          "rank": 2,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 15,
+          "distance": 0.2887,
+          "is_relevant_episode": false,
+          "content_preview": "(00:10:35):\nAnd there's two specific reasons that I incur on, which is before you have growth team, before you would think about growth team first you need to have solid PMF, product market fit, means"
+        },
+        {
+          "rank": 3,
+          "episode_id": "gustaf-alstromer",
+          "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alstr\u00f6mer (Y Combinator, Airbnb)",
+          "chunk_index": 93,
+          "distance": 0.292,
+          "is_relevant_episode": false,
+          "content_preview": "(00:57:27):\nDoing things that don't scale is not a scalable strategy. Eventually, something specific will be the things that work for you. If you're lucky, people will talk about your product and you'"
+        },
+        {
+          "rank": 4,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 13,
+          "distance": 0.3018,
+          "is_relevant_episode": false,
+          "content_preview": "(00:09:17):\nWe live in tech, there's always lots of startups. Startups are obviously looking to grow and there is a huge misconception in the shield that in order to get growth going, you need a growt"
+        },
+        {
+          "rank": 5,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 103,
+          "distance": 0.3151,
+          "is_relevant_episode": false,
+          "content_preview": "Hila Qu (01:19:24):\nOnce you have this initial team, it's important to give them the resources they need, and give them an initial focus area, give them support and a little bit time, allow them to tr"
+        }
+      ]
+    },
+    {
+      "id": "Q08",
+      "question": "What are the most common growth tactics that never work and why?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "elena-verna",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2936,
+      "relevant_evidence_found": true,
+      "relevant_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 9,
+          "distance": 0.2936,
+          "is_relevant_episode": true,
+          "content_preview": "Elena Verna (00:05:54):\nIt's all about how you present them too. Storytelling is a big portion of it actually to stick.\n\nLenny Rachitsky (00:06:00):\nAlready insight. That's an insight right there. The"
+        },
+        {
+          "rank": 2,
+          "episode_id": "gustaf-alstromer",
+          "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alstr\u00f6mer (Y Combinator, Airbnb)",
+          "chunk_index": 93,
+          "distance": 0.301,
+          "is_relevant_episode": false,
+          "content_preview": "(00:57:27):\nDoing things that don't scale is not a scalable strategy. Eventually, something specific will be the things that work for you. If you're lucky, people will talk about your product and you'"
+        },
+        {
+          "rank": 3,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 101,
+          "distance": 0.3123,
+          "is_relevant_episode": true,
+          "content_preview": "(01:17:31):\nThe next favorite growth framework for me comes from Bengali and that's adjacent to user theory. I think that was very powerful in terms of thinking about growth evolution. And as we talke"
+        },
+        {
+          "rank": 4,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 11,
+          "distance": 0.3126,
+          "is_relevant_episode": true,
+          "content_preview": "(00:07:35):\nThere's just a lot of failure happening in growth teams. Actually, I think growth teams are becoming one of those departments that has a higher head of growth firing rate than even CMOs be"
+        },
+        {
+          "rank": 5,
+          "episode_id": "casey-winters",
+          "episode_title": "Why most product managers are unprepared for the demands of a real startup | Casey Winters",
+          "chunk_index": 80,
+          "distance": 0.3137,
+          "is_relevant_episode": false,
+          "content_preview": "(51:24):\nAnd it's once you unlock a fire strategy, that's when I think you think about hiring someone full time on growth to fully harness that new growth loop you've built. That could be a salesperso"
+        }
+      ]
+    },
+    {
+      "id": "Q09",
+      "question": "How does the DHM framework help product managers articulate product strategy?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "gibson-biddle",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.3155,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "nikhyl-singhal",
+          "episode_title": "Building a long and meaningful career | Nikhyl Singhal (Meta, Google)",
+          "chunk_index": 36,
+          "distance": 0.3155,
+          "is_relevant_episode": false,
+          "content_preview": "Nikhyl Singhal (00:22:56):\nThere's probably two answers that I would share. One is, they want to build something that they as much as possible are world-class in. So if you think about the different t"
+        },
+        {
+          "rank": 2,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 58,
+          "distance": 0.3333,
+          "is_relevant_episode": false,
+          "content_preview": "(00:37:05):\nFor product management, sometimes understand work is figuring out the partnership strategy ahead of actually launching the product because you need to go figure out how the pieces are goin"
+        },
+        {
+          "rank": 3,
+          "episode_id": "casey-winters",
+          "episode_title": "Why most product managers are unprepared for the demands of a real startup | Casey Winters",
+          "chunk_index": 57,
+          "distance": 0.3402,
+          "is_relevant_episode": false,
+          "content_preview": "(36:35):\nIt's also my job to define and consistently improve the process through which we set our product strategy, how we prioritize projects, how we execute on them to make sure we're delivering tha"
+        },
+        {
+          "rank": 4,
+          "episode_id": "shreyas-doshi",
+          "episode_title": "The art of product management | Shreyas Doshi (Stripe, Twitter, Google, Yahoo)",
+          "chunk_index": 108,
+          "distance": 0.3425,
+          "is_relevant_episode": false,
+          "content_preview": "Shreyas Doshi (01:11:55):\nI think Eric Weinstein coined this term high agency, which once I discovered it resonated a lot and aligned with some of my ideas and the way I had defined this concept in my"
+        },
+        {
+          "rank": 5,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 77,
+          "distance": 0.3567,
+          "is_relevant_episode": false,
+          "content_preview": "Lenny Rachitsky (00:49:21):\nAmazing. I'm pulling up the Bloom's Taxonomy. So essentially if you see a PM struggling, which you try to do is figure out which of these things do they not have? How are y"
+        }
+      ]
+    },
+    {
+      "id": "Q10",
+      "question": "What is the best marketing automation platform to use for a Series A SaaS startup?",
+      "label": "unanswerable_from_corpus",
+      "expected_episode": null,
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.3789,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "brian-balfour",
+          "episode_title": "Why ChatGPT will be the next big growth channel (and how to capitalize on it) | Brian Balfour",
+          "chunk_index": 91,
+          "distance": 0.3789,
+          "is_relevant_episode": false,
+          "content_preview": "(01:04:34):\nYou guys at Reforge are now building actual SaaS products that people can buy. It's not just courses. I don't know if people know that, but let's make sure people understand this. There's "
+        },
+        {
+          "rank": 2,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 68,
+          "distance": 0.3969,
+          "is_relevant_episode": false,
+          "content_preview": "Hila Qu (00:52:16):\nMm-hmm. Mm-hmm.\n\nLenny (00:52:17):\nIt'd be cool, maybe just one example of each of these three buckets, like what's a product that did a good job here? And then you also talked abo"
+        },
+        {
+          "rank": 3,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 12,
+          "distance": 0.3998,
+          "is_relevant_episode": false,
+          "content_preview": "(00:08:51):\nBut nowadays, it's not necessarily a case. You can have your B2B SaaS product developed in a way to allow end users to try before you buy. So that's the reason I think this has become bein"
+        },
+        {
+          "rank": 4,
+          "episode_id": "casey-winters",
+          "episode_title": "Why most product managers are unprepared for the demands of a real startup | Casey Winters",
+          "chunk_index": 5,
+          "distance": 0.4031,
+          "is_relevant_episode": false,
+          "content_preview": "(02:22):\nThis episode is brought to you by Mixpanel, offering powerful self-serve product analytics. Something we talk a lot about on the show is how startups can build successful and amazing products"
+        },
+        {
+          "rank": 5,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 64,
+          "distance": 0.4039,
+          "is_relevant_episode": false,
+          "content_preview": "(00:43:14):\nIf you look at the state of where AI is today, as of the day of recording this podcast, now, the most popular model is right now a hybrid pricing model. So because this is also expected, b"
+        }
+      ]
+    },
+    {
+      "id": "Q11",
+      "question": "How did TikTok's algorithm achieve viral growth in 2019-2020?",
+      "label": "unanswerable_from_corpus",
+      "expected_episode": null,
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2742,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "brian-balfour",
+          "episode_title": "Why ChatGPT will be the next big growth channel (and how to capitalize on it) | Brian Balfour",
+          "chunk_index": 11,
+          "distance": 0.2742,
+          "is_relevant_episode": false,
+          "content_preview": "(00:06:34):\nThe second thing is that a lot of the organic distribution that we've had, especially over the past few years, has really shrunk as well. Everybody's talking about the decline of SEO and c"
+        },
+        {
+          "rank": 2,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 125,
+          "distance": 0.3033,
+          "is_relevant_episode": false,
+          "content_preview": "(01:19:11):\nAnd so that connection pivot was critical. It changed ... Literally, angle-changed the retention on Instagram. And so if you about Instagram's growth, there was a TechCrunch article about "
+        },
+        {
+          "rank": 3,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 122,
+          "distance": 0.3278,
+          "is_relevant_episode": false,
+          "content_preview": "(01:17:15):\nBut what ended up happening is we ended up looking at the data, and I can't take credit for this. My colleague at the time, Rob Andrews, had identified this. He was the head of growth mark"
+        },
+        {
+          "rank": 4,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 70,
+          "distance": 0.3351,
+          "is_relevant_episode": false,
+          "content_preview": "(00:52:48):\nI love Andrew Chen's article here. It's called a Law of Shitty Clickthroughs. Where if you over-optimize the same thing over and over again, it has minimal returns, and some growth models "
+        },
+        {
+          "rank": 5,
+          "episode_id": "bangaly-kaba",
+          "episode_title": "Unorthodox frameworks for growing your product, career, and impact | Bangaly Kaba (YT, IG, FB)",
+          "chunk_index": 102,
+          "distance": 0.3382,
+          "is_relevant_episode": false,
+          "content_preview": "(01:05:12):\nThey might be less tech savvy. On a scale of an early adopter versus late majority, they might be closer to the late majority. And so we saw this at Instagram. We always knew working on ou"
+        }
+      ]
+    },
+    {
+      "id": "Q12",
+      "question": "What programming language should I use to build a mobile app?",
+      "label": "unanswerable_from_corpus",
+      "expected_episode": null,
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.4463,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "gustaf-alstromer",
+          "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alstr\u00f6mer (Y Combinator, Airbnb)",
+          "chunk_index": 113,
+          "distance": 0.4463,
+          "is_relevant_episode": false,
+          "content_preview": "(01:10:07):\nAnd then I'll give you two examples of things you can go into if you don't have any specific domain expertise and just a good software engineer. There's a company called Enode. They are ba"
+        },
+        {
+          "rank": 2,
+          "episode_id": "gustaf-alstromer",
+          "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alstr\u00f6mer (Y Combinator, Airbnb)",
+          "chunk_index": 114,
+          "distance": 0.4469,
+          "is_relevant_episode": false,
+          "content_preview": "(01:10:48):\nAnother related company is called Static. Static is the Airbnb for EV charging in India. The reason that you need something like that is you don't have Tesla charging. You don't really hav"
+        },
+        {
+          "rank": 3,
+          "episode_id": "brian-balfour",
+          "episode_title": "Why ChatGPT will be the next big growth channel (and how to capitalize on it) | Brian Balfour",
+          "chunk_index": 67,
+          "distance": 0.4495,
+          "is_relevant_episode": false,
+          "content_preview": "(00:48:37):\nIn the Facebook days, all those other social networks, they also came out with their own platforms. iOS had Android and some failed initiatives from Windows. I don't even remember what tha"
+        },
+        {
+          "rank": 4,
+          "episode_id": "gustaf-alstromer",
+          "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alstr\u00f6mer (Y Combinator, Airbnb)",
+          "chunk_index": 61,
+          "distance": 0.4543,
+          "is_relevant_episode": false,
+          "content_preview": "(00:36:54):\nAnd then finally, I would say a lot of people learn how to code themselves, right? So there are a lot of places online that you can learn the skillset that takes to build a prototype. You "
+        },
+        {
+          "rank": 5,
+          "episode_id": "brian-balfour",
+          "episode_title": "Why ChatGPT will be the next big growth channel (and how to capitalize on it) | Brian Balfour",
+          "chunk_index": 22,
+          "distance": 0.457,
+          "is_relevant_episode": false,
+          "content_preview": "(00:15:12):\nThat typically comes down to third-party content creators or app developers and other businesses. So they all establish a third-party platform that has some incentives built in, and usuall"
+        }
+      ]
+    },
+    {
+      "id": "Q13",
+      "question": "How do you measure and improve the activation rate of a new user onboarding flow?",
+      "label": "answerable_from_corpus",
+      "expected_episode": "bangaly-kaba",
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.3316,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 68,
+          "distance": 0.3316,
+          "is_relevant_episode": false,
+          "content_preview": "Hila Qu (00:52:16):\nMm-hmm. Mm-hmm.\n\nLenny (00:52:17):\nIt'd be cool, maybe just one example of each of these three buckets, like what's a product that did a good job here? And then you also talked abo"
+        },
+        {
+          "rank": 2,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 63,
+          "distance": 0.3317,
+          "is_relevant_episode": false,
+          "content_preview": "Hila Qu (00:48:00):\n... where is confusing. Where do you get stuck if you find that you have a problem with activation, meaning if you enter into the product you are like what do I do, I don't know wh"
+        },
+        {
+          "rank": 3,
+          "episode_id": "fixture-ep-01",
+          "episode_title": "[TEST FIXTURE] Elena Verna on B2B Product-Led Growth & Sales",
+          "chunk_index": 1,
+          "distance": 0.3467,
+          "is_relevant_episode": false,
+          "content_preview": "Key metrics for PLG include product signups, activation rate, natural expansion velocity, and time to value. If users do not experience value within their first session, churn increases exponentially."
+        },
+        {
+          "rank": 4,
+          "episode_id": "adam-fishman",
+          "episode_title": "How to build a high-performing growth team | Adam Fishman (Patreon, Lyft, Imperfect Foods)",
+          "chunk_index": 56,
+          "distance": 0.3489,
+          "is_relevant_episode": false,
+          "content_preview": "Adam Fishman (00:38:15):\nYeah. One of the things that onboarding really drives is habit formation with the product, which leads to retention. And so you should expect to improve your overall cohort re"
+        },
+        {
+          "rank": 5,
+          "episode_id": "hila-qu",
+          "episode_title": "The ultimate guide to adding a PLG motion | Hila Qu (Reforge, GitLab)",
+          "chunk_index": 60,
+          "distance": 0.3496,
+          "is_relevant_episode": false,
+          "content_preview": "(00:45:57):\nSo I also look at the email, the first initial emails, and then when I map this out, I ask the company to give me the data at very high level for each of the step. How many people are on y"
+        }
+      ]
+    },
+    {
+      "id": "Q14",
+      "question": "What is the correct calorie intake for building muscle as an athlete?",
+      "label": "unanswerable_from_corpus",
+      "expected_episode": null,
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.4575,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "gustaf-alstromer",
+          "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alstr\u00f6mer (Y Combinator, Airbnb)",
+          "chunk_index": 76,
+          "distance": 0.4575,
+          "is_relevant_episode": false,
+          "content_preview": "Lenny (00:46:59):\nDo you have a sense of which ones are likely to work out better than others? Or is it just like, \"We have 150 really unclear, but one of these, hopefully.\""
+        },
+        {
+          "rank": 2,
+          "episode_id": "bob-moesta",
+          "episode_title": "How to find work you love | Bob Moesta (Jobs-to-be-Done co-creator, author of \"Job Moves\u201d)",
+          "chunk_index": 58,
+          "distance": 0.476,
+          "is_relevant_episode": false,
+          "content_preview": "(00:34:26):\nBecause there's three levels of information we have to get or three sources of energy that I talk about. So think about it as there's got to be energy in the system for us to do something."
+        },
+        {
+          "rank": 3,
+          "episode_id": "andy-johns",
+          "episode_title": "When enough is enough | Andy Johns (ex-FB, Twitter, Quora)",
+          "chunk_index": 63,
+          "distance": 0.4768,
+          "is_relevant_episode": false,
+          "content_preview": "(00:50:31):\nFor anyone who's listening to this, especially for the folks who haven't, go get the book, The Body Keeps the Score by Bessel van der Kolk. He's a expert clinician who's worked with trauma"
+        },
+        {
+          "rank": 4,
+          "episode_id": "adam-fishman",
+          "episode_title": "How to build a high-performing growth team | Adam Fishman (Patreon, Lyft, Imperfect Foods)",
+          "chunk_index": 79,
+          "distance": 0.4847,
+          "is_relevant_episode": false,
+          "content_preview": "Adam Fishman (00:53:23):\nSo in a way it's both the product-market fit for as a candidate with the company, but then also PMF stands for people, mission and financials. And these are my three criteria."
+        },
+        {
+          "rank": 5,
+          "episode_id": "madhavan-ramanujam",
+          "episode_title": "Pricing your AI product: Lessons from 400+ companies and 50 unicorns | Madhavan Ramanujam",
+          "chunk_index": 52,
+          "distance": 0.485,
+          "is_relevant_episode": false,
+          "content_preview": "(00:35:16):\nThey might still say, \"Yeah, that's good, but I need a budget.\" So then rather than just give them a budget saying, \"It could be a 200K option,\" don't do that. That's the worst thing you c"
+        }
+      ]
+    },
+    {
+      "id": "Q15",
+      "question": "How should a product team decide between running more A/B tests versus qualitative user research?",
+      "label": "unanswerable_from_corpus",
+      "expected_episode": null,
+      "top_k": 5,
+      "chunks_retrieved": 5,
+      "min_distance": 0.2987,
+      "relevant_evidence_found": false,
+      "relevant_rank": null,
+      "results": [
+        {
+          "rank": 1,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 32,
+          "distance": 0.2987,
+          "is_relevant_episode": false,
+          "content_preview": "Ronny Kohavi (00:25:59):\nNow, I don't think we were there at Airbnb for example. The platform at Airbnb was much less mature, and required a lot more analysts in order to interpret the results and to "
+        },
+        {
+          "rank": 2,
+          "episode_id": "elena-verna",
+          "episode_title": "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)",
+          "chunk_index": 89,
+          "distance": 0.3334,
+          "is_relevant_episode": false,
+          "content_preview": "(01:08:36):\nAlso, experimentation cannot be the way that people make decisions in the company. There's still so much about knowing your user, understanding the market for your brain to connect all of "
+        },
+        {
+          "rank": 3,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 30,
+          "distance": 0.3343,
+          "is_relevant_episode": false,
+          "content_preview": "Ronny Kohavi (00:24:21):\nYeah, this is hard. This is hard. But again, that's the value of experiments, which are this oracle that gives you the data. You may be excited about things. You may believe i"
+        },
+        {
+          "rank": 4,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 31,
+          "distance": 0.3348,
+          "is_relevant_episode": false,
+          "content_preview": "Ronny Kohavi (00:25:14):\nSo you do have to have some necessary ingredient. You need to have enough units, mostly users, in order for the statistics to work out. So if you're too small, it may be too e"
+        },
+        {
+          "rank": 5,
+          "episode_id": "ronny-kohavi",
+          "episode_title": "The ultimate guide to A/B testing | Ronny Kohavi (Airbnb, Microsoft, Amazon)",
+          "chunk_index": 35,
+          "distance": 0.3392,
+          "is_relevant_episode": false,
+          "content_preview": "Ronny Kohavi (00:28:14):\nThe OEC or the overall evaluation criterion is something that I think many people that start to dabble in A/B testing miss. And the question is, what are you optimizing for? A"
+        }
+      ]
+    }
+  ],
+  "distribution": {
+    "answerable_min_distances": {
+      "count": 10,
+      "min": 0.2123,
+      "max": 0.3316,
+      "mean": 0.2786,
+      "sorted": [
+        0.2123,
+        0.2157,
+        0.2619,
+        0.269,
+        0.2834,
+        0.2864,
+        0.2936,
+        0.3155,
+        0.3169,
+        0.3316
+      ]
+    },
+    "unanswerable_min_distances": {
+      "count": 5,
+      "min": 0.2742,
+      "max": 0.4575,
+      "mean": 0.3711,
+      "sorted": [
+        0.2742,
+        0.2987,
+        0.3789,
+        0.4463,
+        0.4575
+      ]
+    }
+  }
+}

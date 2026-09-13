@@ -34,6 +34,7 @@ class EmbeddingService:
         self.model = model or settings.ollama_embedding_model or settings.embedding_model
         self.expected_dim = expected_dim or settings.embedding_dimension
         self.timeout = timeout
+        self._client = httpx.Client(timeout=self.timeout)
 
     def embed_text(self, text: str) -> List[float]:
         """Generate a 768-dim vector embedding for a single text chunk."""
@@ -47,7 +48,7 @@ class EmbeddingService:
         }
 
         try:
-            response = httpx.post(url, json=payload, timeout=self.timeout)
+            response = self._client.post(url, json=payload)
         except Exception as exc:
             logger.error("ollama_unavailable", extra={"error": str(exc), "url": url})
             raise OllamaUnavailableError(
@@ -79,11 +80,18 @@ class EmbeddingService:
 
         return embedding
 
-    def embed_texts(self, texts: List[str]) -> List[List[float]]:
-        """Generate vector embeddings for a list of texts sequentially."""
-        embeddings = []
-        for i, t in enumerate(texts):
-            embeddings.append(self.embed_text(t))
+    def embed_texts(self, texts: List[str], max_workers: int = 4) -> List[List[float]]:
+        """Generate vector embeddings for a list of texts concurrently."""
+        if not texts:
+            return []
+        if len(texts) == 1:
+            return [self.embed_text(texts[0])]
+
+        from concurrent.futures import ThreadPoolExecutor
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            embeddings = list(executor.map(self.embed_text, texts))
+
         logger.info(
             "embedding_batch_completed",
             extra={"count": len(texts), "model": self.model},
@@ -92,3 +100,4 @@ class EmbeddingService:
 
 
 embedding_service = EmbeddingService()
+

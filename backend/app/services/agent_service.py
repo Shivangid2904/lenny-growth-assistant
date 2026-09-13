@@ -275,10 +275,12 @@ async def process_chat_message(
         guest = c.get("guest_name") or meta.get("guest_name") or meta.get("guest") or "Unknown"
         url = c.get("source_url") or meta.get("source_url", "")
         citations.append({
+            "episode_id": c.get("episode_id"),
             "episode_title": c.get("episode_title", "Lenny's Podcast"),
             "guest_name": guest,
             "source_url": url,
             "chunk_index": c.get("chunk_index", 0),
+            "distance": round(float(c.get("distance", 0.0)), 4),
         })
 
 
