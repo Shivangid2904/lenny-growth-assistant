@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 from app.config import settings
+from app.exceptions import AppError
 from app.api.router import api_router
 
 app = FastAPI(
@@ -42,7 +43,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+@app.exception_handler(AppError)
+async def app_error_exception_handler(request: Request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.to_dict()},
+    )
+
+
+
 @app.exception_handler(HTTPException)
+
 async def http_exception_handler(request: Request, exc: HTTPException):
     if isinstance(exc.detail, dict) and "code" in exc.detail and "message" in exc.detail:
         return JSONResponse(

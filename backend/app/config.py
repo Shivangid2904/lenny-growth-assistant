@@ -10,21 +10,39 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgrespassword@localhost:5432/lenny_growth"
     test_database_url: str = "postgresql://postgres:postgrespassword@localhost:5432/lenny_growth_test"
 
-    # LLM Providers
-    default_llm_provider: str = "claude"
+    # LLM Providers ("anthropic" or "ollama")
+    llm_provider: str = "anthropic"
+    default_llm_provider: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     anthropic_model: str = "claude-3-5-sonnet-20241022"
 
     # Local Ollama
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3:latest"
+    ollama_model: str = "llama3.2:latest"
     ollama_embedding_model: str = "nomic-embed-text"
     embedding_model: str = "nomic-embed-text"
     embedding_dimension: int = 768
 
+    # RAG & Agent Settings
+    # NOTE: 0.35 is a development placeholder value. Must be recalibrated after real Lenny transcript corpus ingestion.
+    rag_relevance_distance_threshold: float = 0.35
+    # NOTE: 10 messages (approx. 5 turns) MVP history window. Configurable for future tuning.
+    conversation_history_limit: int = 10
+    # NOTE: 60 seconds model timeout MVP default.
+    model_timeout_seconds: float = 60.0
+
     # Ports
     backend_port: int = 8000
     frontend_port: int = 3000
+
+    @property
+    def active_llm_provider(self) -> str:
+        prov = (self.llm_provider or self.default_llm_provider or "anthropic").lower().strip()
+        if prov in ("claude", "anthropic"):
+            return "anthropic"
+        if prov == "ollama":
+            return "ollama"
+        return prov
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
@@ -34,3 +52,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

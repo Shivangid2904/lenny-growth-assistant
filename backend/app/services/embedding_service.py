@@ -6,19 +6,20 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-class EmbeddingError(Exception):
+from app.exceptions import OllamaUnavailableError, AppError
+
+
+class EmbeddingError(AppError):
     """Base exception for embedding errors."""
-    pass
-
-
-class OllamaUnavailableError(EmbeddingError):
-    """Raised when Ollama embedding service is unreachable or errors."""
-    pass
+    def __init__(self, message: str, code: str = "EMBEDDING_ERROR", status_code: int = 500):
+        super().__init__(code=code, message=message, status_code=status_code)
 
 
 class EmbeddingDimensionMismatchError(EmbeddingError):
     """Raised when returned embedding dimension does not match expected dimension."""
-    pass
+    def __init__(self, message: str):
+        super().__init__(message=message, code="EMBEDDING_DIMENSION_MISMATCH", status_code=500)
+
 
 
 class EmbeddingService:

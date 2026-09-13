@@ -7,4 +7,8 @@ alembic>=1.13.1,<2.0.0
 psycopg2-binary>=2.9.9,<3.0.0
 pgvector>=0.2.5,<1.0.0
 httpx>=0.27.0,<1.0.0
+anthropic>=0.34.0,<2.0.0
+claude-agent-sdk>=0.2.0
 pytest>=8.0.0,<9.0.0
+
+
