@@ -18,7 +18,9 @@ class Settings(BaseSettings):
     # Local Ollama
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3:latest"
+    ollama_embedding_model: str = "nomic-embed-text"
     embedding_model: str = "nomic-embed-text"
+    embedding_dimension: int = 768
 
     # Ports
     backend_port: int = 8000

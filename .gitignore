@@ -48,7 +48,8 @@ out/
 # Databases & Local Data Stores
 *.sqlite3
 *.db
-data/
+/data/
+!ingestion/data/
 chroma_db/
 
 # Operating System

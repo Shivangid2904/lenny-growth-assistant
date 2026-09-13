@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Integer, Text, DateTime, text
+from sqlalchemy import Column, String, Integer, Text, DateTime, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from pgvector.sqlalchemy import Vector
@@ -8,6 +8,9 @@ from app.db.base import Base
 
 class TranscriptChunk(Base):
     __tablename__ = "transcript_chunks"
+    __table_args__ = (
+        UniqueConstraint("episode_id", "chunk_index", name="uq_transcript_chunks_episode_chunk"),
+    )
 
     id = Column(
         UUID(as_uuid=True),
