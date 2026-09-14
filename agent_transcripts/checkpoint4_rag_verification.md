@@ -21,10 +21,10 @@ What does Brian Balfour say about product-market fit?
 
 **Streaming Response (Ollama):**
 ```
-According to Brian Balfour, product-market fit is not a static state but rather 
-something that can be lost over time. He emphasizes that what tells you something 
-might not have product-market fit is when you're at a company like this and 
-you're looking for smoke signals. 
+According to Brian Balfour, product-market fit is not a static state but rather
+something that can be lost over time. He emphasizes that what tells you something
+might not have product-market fit is when you're at a company like this and
+you're looking for smoke signals.
 
 Balfour introduces the Four Fits framework as a more comprehensive approach:
 - Market-Product Fit

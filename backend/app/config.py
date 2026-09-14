@@ -51,11 +51,14 @@ class Settings(BaseSettings):
 
     @property
     def active_llm_provider(self) -> str:
+        # Map "local"/"cloud" to actual provider names for user convenience
         prov = (self.llm_provider or self.default_llm_provider or "anthropic").lower().strip()
-        if prov in ("claude", "anthropic"):
-            return "anthropic"
-        if prov == "ollama":
+
+        # Map user-friendly names to internal provider names
+        if prov in ("local", "ollama"):
             return "ollama"
+        if prov in ("cloud", "claude", "anthropic"):
+            return "anthropic"
         return prov
 
     model_config = SettingsConfigDict(

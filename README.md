@@ -49,7 +49,7 @@ A production-ready, grounded growth assistant built on Lenny Rachitsky's podcast
 
 2. **Backend-Authoritative Skills**:
    - **Ship 30 for 30 Writing Skill**: Generates structured essays (1,125–1,375 words), LinkedIn posts, X threads, and concise insights following Ship 30 frameworks.
-   - **Artifact Generation Skill**: Generates interactive HTML, SVG diagrams, and Mermaid charts, persisted in PostgreSQL and rendered safely.
+   - **Artifact Generation Skill**: Generates isolated Markdown and HTML/CSS visual artifacts, persisted in PostgreSQL and rendered safely.
 
 3. **Defense-in-Depth Artifact Security**:
    - Rendered inside a sandboxed iframe (`sandbox="allow-same-origin"`, strictly **omitting** `allow-scripts` and `allow-top-navigation`).
@@ -82,8 +82,8 @@ cp .env.example .env
 
 If you plan to use Anthropic Claude instead of local Ollama, update `.env`:
 ```env
-ACTIVE_LLM_PROVIDER=cloud
-ANTHROPIC_API_KEY=your_sk_ant_key_here
+llm_provider=anthropic
+anthropic_api_key=your_sk_ant_key_here
 ```
 
 ### Step 2: Build and Run Services
@@ -164,8 +164,8 @@ Open `http://localhost:5173` in your browser.
    ```
 3. Set environment variable:
    ```env
-   ACTIVE_LLM_PROVIDER=local
-   OLLAMA_BASE_URL=http://localhost:11434
+   llm_provider=ollama
+   ollama_base_url=http://localhost:11434
    ```
    *Note*: When running in Docker Compose, the backend communicates with Ollama on your host via `http://host.docker.internal:11434`.
 
@@ -173,9 +173,9 @@ Open `http://localhost:5173` in your browser.
 1. Obtain an API key from the [Anthropic Console](https://console.anthropic.com/).
 2. Set environment variables:
    ```env
-   ACTIVE_LLM_PROVIDER=cloud
-   ANTHROPIC_API_KEY=sk-ant-api03-...
-   CLOUD_MODEL_NAME=claude-3-5-sonnet-20241022
+   llm_provider=anthropic
+   anthropic_api_key=sk-ant-api03-...
+   anthropic_model=claude-3-5-sonnet-20241022
    ```
 
 ---
@@ -265,9 +265,9 @@ To deploy the Lenny Growth Assistant in production environments (e.g., AWS ECS/E
    - Deploy `backend/Dockerfile` as a web service.
    - Set environment variables:
      - `DATABASE_URL`: Connection string to production PostgreSQL.
-     - `ACTIVE_LLM_PROVIDER`: `cloud` (recommended for production) or `local`.
-     - `ANTHROPIC_API_KEY`: Production API key.
-     - `CORS_ALLOWED_ORIGINS`: JSON array of production frontend domains (e.g., `["https://assistant.example.com"]`).
+     - `llm_provider`: `anthropic` (recommended for production) or `ollama`.
+     - `anthropic_api_key`: Production API key.
+     - `cors_allowed_origins`: JSON array of production frontend domains (e.g., `["https://assistant.example.com"]`).
      - `APP_ENV`: `production`.
    - Point orchestration healthchecks to `/healthz` (liveness) and `/health` (readiness).
 
