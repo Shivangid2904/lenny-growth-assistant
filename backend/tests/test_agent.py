@@ -251,6 +251,84 @@ async def test_grounded_answer_delimiting_and_citations(db):
     assert persisted_msg.message_metadata["citations"] == citations
 
 
+@pytest.mark.anyio
+async def test_citation_deduplication_by_episode(db):
+    """Verify citations are deduplicated by episode_id when multiple chunks from same episode are eligible."""
+    session = Session(title="Deduplication Test")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    # Multiple chunks from the same episode (should be deduplicated to 1 citation)
+    eligible_chunks = [
+        {
+            "id": str(uuid.uuid4()),
+            "episode_id": "ep-retention",
+            "episode_title": "Casey Winters on Retention",
+            "chunk_index": 1,
+            "content": "First chunk about retention.",
+            "distance": 0.15,
+            "similarity": 0.85,
+            "metadata": {"guest": "Casey Winters", "source_url": "https://lenny.com/casey-winters"},
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "episode_id": "ep-retention",
+            "episode_title": "Casey Winters on Retention",
+            "chunk_index": 2,
+            "content": "Second chunk about retention.",
+            "distance": 0.18,
+            "similarity": 0.82,
+            "metadata": {"guest": "Casey Winters", "source_url": "https://lenny.com/casey-winters"},
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "episode_id": "ep-retention",
+            "episode_title": "Casey Winters on Retention",
+            "chunk_index": 3,
+            "content": "Third chunk about retention.",
+            "distance": 0.20,
+            "similarity": 0.80,
+            "metadata": {"guest": "Casey Winters", "source_url": "https://lenny.com/casey-winters"},
+        },
+    ]
+
+    fake_provider = FakeLLMProvider(tokens=["Retention insights ", "from multiple chunks."])
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=eligible_chunks):
+        events = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="Tell me about retention",
+            provider=fake_provider,
+            relevance_threshold=0.35,
+        ):
+            events.append(event_str)
+
+    # Verify reasoning provider was invoked
+    assert fake_provider.invoked is True
+
+    # Verify SSE done event contains deduplicated citations (only 1, not 3)
+    parsed = parse_sse_events("".join(events))
+    done_event = [d for ev, d in parsed if ev == "done"][0]
+    citations = done_event["citations"]
+    assert len(citations) == 1, f"Expected 1 citation after deduplication, got {len(citations)}"
+    assert citations[0]["episode_id"] == "ep-retention"
+    assert citations[0]["episode_title"] == "Casey Winters on Retention"
+    # Should preserve the first (highest-ranked) chunk citation
+    assert citations[0]["chunk_index"] == 1
+
+    # Verify DB persistence also has deduplicated citations
+    persisted_msg = (
+        db.query(Message)
+        .filter(Message.session_id == session.id, Message.role == "assistant")
+        .first()
+    )
+    assert persisted_msg is not None
+    assert len(persisted_msg.message_metadata["citations"]) == 1
+
+
 # -----------------------------------------------------------------------------
 # 4. Session Isolation & Conversation Context Limit
 # -----------------------------------------------------------------------------

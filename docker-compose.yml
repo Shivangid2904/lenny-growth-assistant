@@ -27,8 +27,8 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@postgres:5432/${POSTGRES_DB:-lenny_growth}
-      llm_provider: ${llm_provider:-ollama}
-      ollama_base_url: ${ollama_base_url:-http://host.docker.internal:11434}
+      llm_provider: ollama
+      ollama_base_url: http://host.docker.internal:11434
       anthropic_api_key: ${anthropic_api_key:-}
       ollama_model: ${ollama_model:-llama3.2:latest}
       anthropic_model: ${anthropic_model:-claude-3-5-sonnet-20241022}

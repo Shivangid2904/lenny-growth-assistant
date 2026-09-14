@@ -11,13 +11,13 @@ class Settings(BaseSettings):
     test_database_url: str = "postgresql://postgres:postgrespassword@localhost:5432/lenny_growth_test"
 
     # LLM Providers ("anthropic" or "ollama")
-    llm_provider: str = "anthropic"
+    llm_provider: str = "ollama"  # Docker demo default; local dev can override via .env
     default_llm_provider: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     anthropic_model: str = "claude-3-5-sonnet-20241022"
 
     # Local Ollama
-    ollama_base_url: str = "http://localhost:11434"
+    ollama_base_url: str = "http://localhost:11434"  # Local dev default; Docker overrides via compose
     ollama_model: str = "llama3.2:latest"
     ollama_embedding_model: str = "nomic-embed-text"
     embedding_model: str = "nomic-embed-text"

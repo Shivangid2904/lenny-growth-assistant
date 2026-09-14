@@ -327,18 +327,25 @@ async def process_chat_message(
 
     # Format structured citations strictly from eligible chunks
     citations = []
+    seen_episodes = set()  # Track unique episodes for deduplication
     for c in eligible_chunks:
         meta = c.get("metadata", {})
         guest = c.get("guest_name") or meta.get("guest_name") or meta.get("guest") or "Unknown"
         url = c.get("source_url") or meta.get("source_url", "")
-        citations.append({
-            "episode_id": c.get("episode_id"),
-            "episode_title": c.get("episode_title", "Lenny's Podcast"),
-            "guest_name": guest,
-            "source_url": url,
-            "chunk_index": c.get("chunk_index", 0),
-            "distance": round(float(c.get("distance", 0.0)), 4),
-        })
+        episode_id = c.get("episode_id")
+
+        # Deduplicate citations by episode_id to avoid displaying the same source multiple times
+        # Preserve the first (highest-ranked) chunk citation for each unique episode
+        if episode_id not in seen_episodes:
+            seen_episodes.add(episode_id)
+            citations.append({
+                "episode_id": episode_id,
+                "episode_title": c.get("episode_title", "Lenny's Podcast"),
+                "guest_name": guest,
+                "source_url": url,
+                "chunk_index": c.get("chunk_index", 0),
+                "distance": round(float(c.get("distance", 0.0)), 4),
+            })
 
 
     # Step 7: Construct context with bounded session history and delimited evidence
