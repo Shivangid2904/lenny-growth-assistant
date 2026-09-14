@@ -92,6 +92,8 @@ Launch all services (PostgreSQL, FastAPI Backend, and Nginx Frontend) in detache
 docker compose up --build -d
 ```
 
+**Note:** The Docker Compose configuration uses local Ollama by default. Since local inference can be slower than cloud APIs, the model timeout is configured to 300 seconds for the Docker demo. This remains configurable via the `model_timeout_seconds` environment variable.
+
 ### Step 3: Access the Application
 - **Frontend Chat Interface**: `http://localhost:3000`
 - **Backend API & Swagger Docs**: `http://localhost:8000/docs`

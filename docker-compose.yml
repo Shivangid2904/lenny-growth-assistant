@@ -33,6 +33,7 @@ services:
       ollama_model: ${ollama_model:-llama3.2:latest}
       anthropic_model: ${anthropic_model:-claude-3-5-sonnet-20241022}
       embedding_model: ${embedding_model:-nomic-embed-text}
+      model_timeout_seconds: 300
       cors_allowed_origins: ${cors_allowed_origins:-["http://localhost:3000","http://localhost:5173","http://localhost:80","http://127.0.0.1:3000","http://127.0.0.1:5173"]}
       app_env: ${app_env:-production}
       log_level: ${log_level:-INFO}
