@@ -62,6 +62,8 @@ raw_transcripts/
 *.raw.txt
 *.raw.md
 
+# Local verification outputs (generated during live testing, not for commit)
+backend/latest_essay.md
 
 # Operating System
 .DS_Store

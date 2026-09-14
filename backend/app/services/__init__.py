@@ -36,7 +36,14 @@ from app.services.agent_service import (
     build_system_prompt,
     get_conversation_history,
 )
-from app.services.skill_router import skill_router, Skill, ChatSkill, Ship30Skill, ArtifactSkillStub
+from app.services.skill_router import (
+    skill_router,
+    Skill,
+    ChatSkill,
+    Ship30Skill,
+    ArtifactSkill,
+    ArtifactSkillStub,
+)
 
 __all__ = [
     "create_session",
@@ -64,6 +71,8 @@ __all__ = [
     "Skill",
     "ChatSkill",
     "Ship30Skill",
+    "ArtifactSkill",
     "ArtifactSkillStub",
 ]
+
 

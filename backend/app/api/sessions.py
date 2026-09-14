@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from fastapi.responses import StreamingResponse
+from app.models.artifact import Artifact
+from app.schemas.artifact import ArtifactResponse
 from app.schemas.session import (
     SessionCreate,
     SessionResponse,
@@ -97,4 +99,61 @@ async def send_session_message(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get("/{session_id}/artifacts", response_model=List[ArtifactResponse])
+def get_session_artifacts(
+    session_id: UUID,
+    db: Session = Depends(get_db),
+) -> List[ArtifactResponse]:
+    """Retrieve all artifacts generated for the given session."""
+    session = get_session(db, session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Session '{session_id}' not found.",
+            },
+        )
+    artifacts = (
+        db.query(Artifact)
+        .filter(Artifact.session_id == session_id)
+        .order_by(Artifact.created_at.asc())
+        .all()
+    )
+    return artifacts
+
+
+@router.get("/{session_id}/artifacts/{artifact_id}", response_model=ArtifactResponse)
+def get_session_artifact(
+    session_id: UUID,
+    artifact_id: UUID,
+    db: Session = Depends(get_db),
+) -> ArtifactResponse:
+    """Retrieve a specific artifact by ID within a session."""
+    session = get_session(db, session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Session '{session_id}' not found.",
+            },
+        )
+    artifact = (
+        db.query(Artifact)
+        .filter(Artifact.session_id == session_id, Artifact.id == artifact_id)
+        .first()
+    )
+    if not artifact:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "ARTIFACT_NOT_FOUND",
+                "message": f"Artifact '{artifact_id}' not found.",
+            },
+        )
+    return artifact
+
 

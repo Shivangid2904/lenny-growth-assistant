@@ -7,6 +7,18 @@ export interface Citation {
   distance?: number;
 }
 
+export interface Artifact {
+  id: string;
+  session_id?: string;
+  title: string;
+  type: 'markdown' | 'html';
+  content: string;
+  css?: string | null;
+  metadata?: Record<string, any>;
+  created_at?: string;
+  sanitized?: boolean;
+}
+
 export interface Message {
   id: string;
   session_id: string;
@@ -16,6 +28,7 @@ export interface Message {
     citations?: Citation[];
     skill?: string;
     content_type?: string;
+    artifact?: Artifact;
   };
   created_at: string;
 }
@@ -46,6 +59,7 @@ export interface SSEDoneData {
   status: 'completed';
   skill?: string;
   content_type?: string;
+  artifact?: Artifact | null;
 }
 
 export interface SSEErrorData {

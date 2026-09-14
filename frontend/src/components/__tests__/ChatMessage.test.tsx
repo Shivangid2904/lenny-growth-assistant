@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatMessage } from '../ChatMessage';
 import { Message } from '../../types/api';
@@ -104,4 +104,33 @@ describe('ChatMessage', () => {
     expect(messageBubble).toBeInTheDocument();
     expect(messageBubble).not.toHaveClass('bg-red-50');
   });
+
+  it('renders artifact card when artifact metadata is present', () => {
+    const onOpenArtifact = vi.fn();
+    const artifactMessage: Message = {
+      id: '7',
+      session_id: 'session-1',
+      role: 'assistant',
+      content: 'Here is your growth framework artifact.',
+      metadata: {
+        artifact: {
+          id: 'art-1',
+          title: 'Four Fits Framework',
+          type: 'html',
+          content: '<div>Framework</div>',
+        },
+      },
+      created_at: '2024-01-01T00:00:00Z',
+    };
+
+    render(<ChatMessage message={artifactMessage} onOpenArtifact={onOpenArtifact} />);
+    expect(screen.getByText('Four Fits Framework')).toBeInTheDocument();
+    expect(screen.getByText('html Artifact')).toBeInTheDocument();
+
+    const viewBtn = screen.getByRole('button', { name: /view artifact/i });
+    expect(viewBtn).toBeInTheDocument();
+    viewBtn.click();
+    expect(onOpenArtifact).toHaveBeenCalledWith(artifactMessage.metadata?.artifact);
+  });
 });
+

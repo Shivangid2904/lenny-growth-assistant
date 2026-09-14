@@ -88,20 +88,44 @@ class Ship30Skill(Skill):
         return detected if detected is not None else CONTENT_TYPE_ESSAY
 
 
-class ArtifactSkillStub(Skill):
-    """Stub for future interactive artifact generation skill (Checkpoint 6)."""
+from app.skills.artifact import (
+    ARTIFACT_SKILL_NAME,
+    ARTIFACT_SKILL_DESCRIPTION,
+    SUPPORTED_ARTIFACT_TYPES,
+    detect_artifact_type,
+    is_artifact_intent,
+)
+
+
+class ArtifactSkill(Skill):
+    """Artifact generation skill for isolated Markdown and HTML/CSS visual artifacts.
+
+    Transforms Lenny's Podcast transcript insights into self-contained visual
+    or structured artifacts (frameworks, comparison tables, process maps, dashboards).
+    """
 
     @property
     def name(self) -> str:
-        return "artifact"
+        return ARTIFACT_SKILL_NAME
 
     @property
     def description(self) -> str:
-        return "Generates isolated Markdown and HTML/CSS visual artifacts (Future Checkpoint)."
+        return ARTIFACT_SKILL_DESCRIPTION
 
     @property
     def is_stub(self) -> bool:
-        return True
+        return False
+
+    @property
+    def supported_content_types(self) -> set:
+        return SUPPORTED_ARTIFACT_TYPES
+
+    def detect_content_type(self, message: str) -> str:
+        return detect_artifact_type(message)
+
+
+# Backwards compatibility alias
+ArtifactSkillStub = ArtifactSkill
 
 
 class SkillRouter:
@@ -112,7 +136,7 @@ class SkillRouter:
         # Register core skills
         self.register(ChatSkill())
         self.register(Ship30Skill())
-        self.register(ArtifactSkillStub())
+        self.register(ArtifactSkill())
 
     def register(self, skill: Skill) -> None:
         self._skills[skill.name.lower()] = skill
@@ -133,11 +157,11 @@ class SkillRouter:
         1. If an explicit skill name is provided (e.g., from a trusted frontend action),
            validate it against the allowlisted registry. Reject anything not registered.
         2. Otherwise, perform backend-controlled intent detection using the fixed
-           pattern table from app/skills/ship30.py.
+           pattern tables.
         3. Unknown patterns fall back to the default 'chat' skill.
 
         User-provided text cannot invoke arbitrary Python functions, modules, or
-        backend endpoints — only registered skill names and the fixed pattern table
+        backend endpoints — only registered skill names and fixed pattern tables
         are consulted.
         """
         if explicit_skill:
@@ -152,7 +176,15 @@ class SkillRouter:
             )
             return skill
 
-        # Backend-controlled intent detection
+        # Check Artifact intent first
+        if is_artifact_intent(message):
+            logger.info(
+                "skill_routed_intent",
+                extra={"detected_skill": "artifact", "message_preview": message[:80]},
+            )
+            return self._skills["artifact"]
+
+        # Backend-controlled Ship30 intent detection
         msg_lower = message.lower()
 
         # Check Ship30 intents via the backend-controlled pattern table
@@ -172,6 +204,7 @@ class SkillRouter:
             return self._skills["ship30"]
 
         return self._skills["chat"]
+
 
 
 # Global router singleton

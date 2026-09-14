@@ -25,6 +25,16 @@ export function ContentActions({ onActionClick, disabled }: ContentActionsProps)
       prompt: 'Write a concise product insight.',
       description: 'Generate a brief insight',
     },
+    {
+      label: 'HTML Artifact',
+      prompt: 'Create an HTML artifact visual summary of this framework.',
+      description: 'Generate a visual HTML/CSS artifact',
+    },
+    {
+      label: 'Markdown Artifact',
+      prompt: 'Create a markdown artifact structured guide for this.',
+      description: 'Generate a structured Markdown artifact',
+    },
   ];
 
   return (

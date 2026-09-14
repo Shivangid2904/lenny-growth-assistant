@@ -9,14 +9,21 @@ from sqlalchemy.orm import Session as DbSession
 from app.config import settings
 from app.models.message import Message
 from app.models.session import Session
+from app.models.artifact import Artifact
 from app.services.retrieval_service import search_transcript_chunks
 from app.services.llm_provider import LLMProvider, get_llm_provider
-from app.services.skill_router import skill_router, Ship30Skill
+from app.services.skill_router import skill_router, Ship30Skill, ArtifactSkill
 from app.skills.ship30 import (
     build_ship30_system_prompt,
     CONTENT_TYPE_ESSAY,
     ESSAY_MIN_WORDS,
     ESSAY_MAX_WORDS,
+)
+from app.skills.artifact import (
+    build_artifact_system_prompt,
+    extract_artifact_data,
+    ARTIFACT_TYPE_HTML,
+    ARTIFACT_TYPE_MARKDOWN,
 )
 from app.exceptions import (
     AppError,
@@ -118,14 +125,14 @@ def build_system_prompt(skill_name: str, content_type: Optional[str] = None) -> 
     """Build the final system prompt for a given skill.
 
     The base SYSTEM_INSTRUCTION (strict grounding policy and prompt-injection
-    boundary) is always included first.  For the Ship30 skill, additional
-    writing principles and structural guidance are appended WITHOUT weakening
+    boundary) is always included first.  For specialized skills (Ship30, Artifact),
+    additional principles and structural guidance are appended WITHOUT weakening
     the grounding constraints.
 
     Args:
-        skill_name: The resolved skill name (e.g. 'chat', 'ship30').
-        content_type: For the ship30 skill, the specific content type
-            (essay, linkedin, thread, insight). Defaults to essay.
+        skill_name: The resolved skill name (e.g. 'chat', 'ship30', 'artifact').
+        content_type: The specific content type (e.g. essay/linkedin for ship30,
+            html/markdown for artifact).
 
     Returns:
         Complete system prompt string to pass to the reasoning provider.
@@ -133,6 +140,9 @@ def build_system_prompt(skill_name: str, content_type: Optional[str] = None) -> 
     if skill_name == "ship30":
         ct = content_type or CONTENT_TYPE_ESSAY
         return SYSTEM_INSTRUCTION + build_ship30_system_prompt(ct)
+    elif skill_name == "artifact":
+        ct = content_type or ARTIFACT_TYPE_MARKDOWN
+        return SYSTEM_INSTRUCTION + build_artifact_system_prompt(ct)
     return SYSTEM_INSTRUCTION
 
 
@@ -156,8 +166,8 @@ async def process_chat_message(
     6. If 0 eligible chunks: yield refusal tokens, persist refusal assistant message, terminate (0 model calls)
     7. If eligible chunks exist: construct grounded prompt with delimited untrusted evidence + session history
     8. Invoke active reasoning provider with skill-appropriate system prompt and stream generated tokens
-    9. Upon successful generation completion: persist assistant message with structured citations
-    10. Yield 'done' SSE event with persisted message ID, citations, and resolved skill metadata
+    9. Upon successful generation completion: persist assistant message with structured citations (and artifact if applicable)
+    10. Yield 'done' SSE event with persisted message ID, citations, resolved skill metadata, and artifact
     """
     start_time = time.time()
     sid_str = str(session_id)
@@ -177,9 +187,11 @@ async def process_chat_message(
     routed_skill = skill_router.route(user_content, explicit_skill=explicit_skill)
     skill_name = routed_skill.name
 
-    # Detect content type for Ship30 skill
+    # Detect content type for specialized skills
     content_type: Optional[str] = None
     if skill_name == "ship30" and isinstance(routed_skill, Ship30Skill):
+        content_type = routed_skill.detect_content_type(user_content)
+    elif skill_name == "artifact" and hasattr(routed_skill, "detect_content_type"):
         content_type = routed_skill.detect_content_type(user_content)
 
     logger.info(
@@ -289,6 +301,9 @@ async def process_chat_message(
                 "message_id": str(assistant_msg.id),
                 "citations": [],
                 "status": "completed",
+                "skill": skill_name,
+                "content_type": content_type,
+                "artifact": None,
             },
         )
         logger.info(
@@ -351,6 +366,18 @@ async def process_chat_message(
             f"so that the total essay length falls strictly within the required {ESSAY_MIN_WORDS}–{ESSAY_MAX_WORDS} word range (target: ~1,250 words). "
             f"Do not write single-paragraph sections, do not truncate, and do not conclude early.]"
         )
+    elif skill_name == "artifact":
+        if content_type == ARTIFACT_TYPE_HTML:
+            current_turn_prompt += (
+                f"\n\n[Instruction: Create a self-contained, beautifully styled HTML/CSS visual artifact summarizing the transcript evidence. "
+                f"Include an embedded <style> block with polished styling. "
+                f"DO NOT include any <script> tags or JavaScript event handlers. Ground strictly in the retrieved evidence.]"
+            )
+        else:
+            current_turn_prompt += (
+                f"\n\n[Instruction: Create a structured Markdown artifact summarizing the transcript evidence. "
+                f"Include clear headers, tables, and structured takeaways. Ground strictly in the retrieved evidence.]"
+            )
     llm_messages.append({"role": "user", "content": current_turn_prompt})
 
     # Build skill-appropriate system prompt (grounding is always preserved)
@@ -403,21 +430,69 @@ async def process_chat_message(
         )
         return
 
-    # Step 9: Persist completed assistant message only upon successful completion
+    # Step 9: If artifact skill was invoked, parse and persist artifact record
+    artifact_payload = None
+    artifact_record = None
+    if skill_name == "artifact":
+        try:
+            artifact_data = extract_artifact_data(
+                raw_content=full_response,
+                requested_type=content_type or ARTIFACT_TYPE_MARKDOWN,
+                query=user_content,
+            )
+            artifact_record = Artifact(
+                session_id=session_id,
+                type=artifact_data["type"],
+                title=artifact_data["title"],
+                content=artifact_data["content"],
+                sanitized=True,
+                artifact_metadata={
+                    "css": artifact_data["css"],
+                    "requested_type": content_type or ARTIFACT_TYPE_MARKDOWN,
+                },
+            )
+            db.add(artifact_record)
+            db.flush()
+
+            artifact_payload = {
+                "id": str(artifact_record.id),
+                "session_id": str(session_id),
+                "title": artifact_record.title,
+                "type": artifact_record.type,
+                "content": artifact_record.content,
+                "css": artifact_data["css"],
+                "metadata": artifact_record.artifact_metadata or {},
+                "created_at": artifact_record.created_at.isoformat() if artifact_record.created_at else None,
+            }
+        except Exception as e:
+            logger.error("artifact_creation_failed", extra={"session_id": sid_str, "error": str(e)})
+
+    # Persist completed assistant message only upon successful completion
     try:
+        msg_meta = {
+            "citations": citations,
+            "skill": skill_name,
+            "content_type": content_type,
+        }
+        if artifact_payload:
+            msg_meta["artifact"] = artifact_payload
+
         assistant_msg = Message(
             session_id=session_id,
             role="assistant",
             content=full_response,
-            message_metadata={
-                "citations": citations,
-                "skill": skill_name,
-                "content_type": content_type,
-            },
+            message_metadata=msg_meta,
         )
         db.add(assistant_msg)
         db.commit()
         db.refresh(assistant_msg)
+
+        if artifact_record is not None and artifact_payload:
+            artifact_record.artifact_metadata = {
+                **(artifact_record.artifact_metadata or {}),
+                "message_id": str(assistant_msg.id),
+            }
+            db.commit()
 
         logger.info(
             "assistant_message_persisted",
@@ -426,6 +501,7 @@ async def process_chat_message(
                 "message_id": str(assistant_msg.id),
                 "citations_count": len(citations),
                 "skill": skill_name,
+                "has_artifact": artifact_payload is not None,
             },
         )
     except Exception as e:
@@ -437,17 +513,18 @@ async def process_chat_message(
         )
         return
 
-    # Step 10: Emit 'done' SSE event with skill metadata
-    yield format_sse(
-        "done",
-        {
-            "message_id": str(assistant_msg.id),
-            "citations": citations,
-            "status": "completed",
-            "skill": skill_name,
-            "content_type": content_type,
-        },
-    )
+    # Step 10: Emit 'done' SSE event with skill and artifact metadata
+    done_payload = {
+        "message_id": str(assistant_msg.id),
+        "citations": citations,
+        "status": "completed",
+        "skill": skill_name,
+        "content_type": content_type,
+    }
+    if artifact_payload:
+        done_payload["artifact"] = artifact_payload
+
+    yield format_sse("done", done_payload)
 
     logger.info(
         "agent_request_completed",

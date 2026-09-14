@@ -1,11 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import { sendMessage as sendApiMessage, ApiError } from '../lib/api';
-import { Message, Citation } from '../types/api';
+import { Message, Citation, Artifact } from '../types/api';
 
 interface UseChatReturn {
   messages: Message[];
   isLoading: boolean;
   error: string | null;
+  activeArtifact: Artifact | null;
+  setActiveArtifact: (artifact: Artifact | null) => void;
   sendMessage: (content: string) => Promise<void>;
   clearError: () => void;
 }
@@ -14,6 +16,7 @@ export function useChat(sessionId: string): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeArtifact, setActiveArtifact] = useState<Artifact | null>(null);
   const isStreamingRef = useRef(false);
 
   const clearError = useCallback(() => {
@@ -72,7 +75,7 @@ export function useChat(sessionId: string): UseChatReturn {
           );
         },
         // onDone
-        (messageId: string, newCitations: Citation[], newSkill?: string, newContentType?: string) => {
+        (messageId: string, newCitations: Citation[], newSkill?: string, newContentType?: string, artifact?: Artifact | null) => {
           citations = newCitations;
           skill = newSkill;
           contentType = newContentType;
@@ -86,11 +89,15 @@ export function useChat(sessionId: string): UseChatReturn {
                       citations,
                       skill,
                       content_type: contentType,
+                      artifact: artifact || undefined,
                     },
                   }
                 : msg
             )
           );
+          if (artifact) {
+            setActiveArtifact(artifact);
+          }
         },
         // onError
         (code: string, message: string) => {
@@ -115,6 +122,8 @@ export function useChat(sessionId: string): UseChatReturn {
     messages,
     isLoading,
     error,
+    activeArtifact,
+    setActiveArtifact,
     sendMessage,
     clearError,
   };

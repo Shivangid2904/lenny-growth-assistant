@@ -8,6 +8,12 @@ from app.schemas.session import (
     SessionDetailResponse,
 )
 
+from app.schemas.artifact import (
+    ArtifactBase,
+    ArtifactCreate,
+    ArtifactResponse,
+)
+
 __all__ = [
     "ErrorDetail",
     "ErrorEnvelope",
@@ -18,4 +24,8 @@ __all__ = [
     "MessageResponse",
     "SessionResponse",
     "SessionDetailResponse",
+    "ArtifactBase",
+    "ArtifactCreate",
+    "ArtifactResponse",
 ]
+
