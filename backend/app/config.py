@@ -35,14 +35,18 @@ class Settings(BaseSettings):
     backend_port: int = 8000
     frontend_port: int = 5173
 
-    # CORS
-    cors_origins: list[str] = [
+    # CORS — set CORS_ALLOWED_ORIGINS as a JSON array string in production,
+    # e.g. CORS_ALLOWED_ORIGINS='["https://your-frontend-domain.com"]'
+    # Development defaults cover standard Vite dev-server ports.
+    cors_allowed_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
         "http://localhost:5175",
         "http://127.0.0.1:5175",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
     ]
 
     @property
