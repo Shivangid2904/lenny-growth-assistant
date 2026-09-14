@@ -329,6 +329,247 @@ async def test_citation_deduplication_by_episode(db):
     assert len(persisted_msg.message_metadata["citations"]) == 1
 
 
+@pytest.mark.anyio
+async def test_followup_transformation_inherits_evidence(db):
+    """Verify follow-up transformations like 'turn this into a Ship30 essay' inherit evidence from previous grounded response."""
+    session = Session(title="Follow-up Test")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    # Step 1: User asks a grounded question
+    eligible_chunk = {
+        "id": str(uuid.uuid4()),
+        "episode_id": "ep-retention",
+        "episode_title": "Casey Winters on Retention",
+        "chunk_index": 1,
+        "content": "Cohort retention curves that flatten indicate product-market fit.",
+        "distance": 0.18,
+        "similarity": 0.82,
+        "metadata": {"guest": "Casey Winters", "source_url": "https://lenny.com/casey-winters"},
+    }
+
+    fake_provider = FakeLLMProvider(tokens=["Retention curves ", "that flatten indicate PMF."])
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=[eligible_chunk]):
+        events = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="How do retention curves indicate PMF?",
+            provider=fake_provider,
+            relevance_threshold=0.35,
+        ):
+            events.append(event_str)
+
+    # Verify first response was grounded with citations
+    parsed = parse_sse_events("".join(events))
+    done_event = [d for ev, d in parsed if ev == "done"][0]
+    assert len(done_event["citations"]) == 1
+    assert done_event["citations"][0]["episode_id"] == "ep-retention"
+
+    # Verify the assistant message has eligible_chunks_data persisted
+    assistant_msg = (
+        db.query(Message)
+        .filter(Message.session_id == session.id, Message.role == "assistant")
+        .first()
+    )
+    assert assistant_msg is not None
+    assert "eligible_chunks_data" in assistant_msg.message_metadata
+    assert len(assistant_msg.message_metadata["eligible_chunks_data"]) == 1
+
+    # Step 2: User asks for Ship30 transformation
+    fake_provider2 = FakeLLMProvider(tokens=["Ship30 essay content ", "based on retention curves."])
+
+    with patch("app.services.agent_service.search_transcript_chunks") as mock_search:
+        # This should NOT be called because evidence is inherited
+        events2 = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="Turn this into a Ship 30 for 30 essay",
+            provider=fake_provider2,
+            relevance_threshold=0.35,
+        ):
+            events2.append(event_str)
+
+    # Verify retrieval was NOT called (evidence inherited)
+    mock_search.assert_not_called()
+
+    # Verify Ship30 was generated with inherited evidence
+    assert fake_provider2.invoked is True
+    parsed2 = parse_sse_events("".join(events2))
+    done_event2 = [d for ev, d in parsed2 if ev == "done"][0]
+    assert done_event2["skill"] == "ship30"
+    assert len(done_event2["citations"]) == 1  # Citations preserved from inheritance
+    assert done_event2["citations"][0]["episode_id"] == "ep-retention"
+
+
+@pytest.mark.anyio
+async def test_followup_without_previous_evidence_refuses(db):
+    """Verify follow-up transformation with no previous grounded evidence returns refusal."""
+    session = Session(title="No Prior Evidence Test")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    # User asks for transformation with no prior grounded response
+    fake_provider = FakeLLMProvider(tokens=["Essay content"])
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=[]):
+        events = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="Turn this into a Ship 30 essay",
+            provider=fake_provider,
+            relevance_threshold=0.35,
+        ):
+            events.append(event_str)
+
+    # Verify reasoning provider was NOT invoked (refusal due to no evidence)
+    assert fake_provider.invoked is False
+
+    # Verify refusal was returned
+    parsed = parse_sse_events("".join(events))
+    token_events = [d for ev, d in parsed if ev == "token"]
+    assert any("couldn't find" in d.get("delta", "") for d in token_events)
+    
+    done_event = [d for ev, d in parsed if ev == "done"][0]
+    assert done_event["citations"] == []
+    assert done_event.get("artifact") is None
+
+
+@pytest.mark.anyio
+async def test_independent_question_performs_normal_retrieval(db):
+    """Verify independent questions still perform normal retrieval even after follow-up."""
+    session = Session(title="Independent Question Test")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    # Step 1: Grounded question
+    eligible_chunk = {
+        "id": str(uuid.uuid4()),
+        "episode_id": "ep-retention",
+        "episode_title": "Casey Winters on Retention",
+        "chunk_index": 1,
+        "content": "Retention insights.",
+        "distance": 0.18,
+        "metadata": {"guest": "Casey Winters"},
+    }
+
+    fake_provider1 = FakeLLMProvider(tokens=["Retention answer"])
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=[eligible_chunk]):
+        events1 = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="Tell me about retention",
+            provider=fake_provider1,
+            relevance_threshold=0.35,
+        ):
+            events1.append(event_str)
+
+    # Step 2: Independent question (not a follow-up transformation)
+    eligible_chunk2 = {
+        "id": str(uuid.uuid4()),
+        "episode_id": "ep-growth",
+        "episode_title": "Growth Framework",
+        "chunk_index": 1,
+        "content": "Growth insights.",
+        "distance": 0.20,
+        "metadata": {"guest": "Growth Expert"},
+    }
+
+    fake_provider2 = FakeLLMProvider(tokens=["Growth answer"])
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=[eligible_chunk2]) as mock_search:
+        events2 = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="What is growth?",
+            provider=fake_provider2,
+            relevance_threshold=0.35,
+        ):
+            events2.append(event_str)
+
+    # Verify retrieval WAS called for independent question
+    mock_search.assert_called_once()
+
+    # Verify second answer has different citations
+    parsed2 = parse_sse_events("".join(events2))
+    done_event2 = [d for ev, d in parsed2 if ev == "done"][0]
+    assert done_event2["citations"][0]["episode_id"] == "ep-growth"
+
+
+@pytest.mark.anyio
+async def test_followup_grounding_boundary_enforced(db):
+    """Verify follow-up transformations do not introduce unsupported facts from skill instructions."""
+    session = Session(title="Grounding Boundary Test")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    # Step 1: User asks a grounded question about Gustaf Alströmer
+    eligible_chunk = {
+        "id": str(uuid.uuid4()),
+        "episode_id": "ep-gustaf",
+        "episode_title": "Gustaf Alströmer on YC",
+        "chunk_index": 1,
+        "content": "Gustaf learned that founders should focus on product first before growth.",
+        "distance": 0.18,
+        "metadata": {"guest": "Gustaf Alströmer", "source_url": "https://lenny.com/gustaf"},
+    }
+
+    fake_provider1 = FakeLLMProvider(tokens=["Founders should ", "focus on product first."])
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=[eligible_chunk]):
+        events1 = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="What did Gustaf Alströmer learn?",
+            provider=fake_provider1,
+            relevance_threshold=0.35,
+        ):
+            events1.append(event_str)
+
+    # Step 2: User asks for Ship30 transformation
+    fake_provider2 = FakeLLMProvider(tokens=["Essay about ", "Gustaf's lessons."])
+
+    with patch("app.services.agent_service.search_transcript_chunks") as mock_search:
+        events2 = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="Turn this into a Ship 30 for 30 essay",
+            provider=fake_provider2,
+            relevance_threshold=0.35,
+        ):
+            events2.append(event_str)
+
+    # Verify retrieval was NOT called (evidence inherited)
+    mock_search.assert_not_called()
+
+    # Verify the provider was invoked with evidence boundary instruction
+    assert fake_provider2.invoked is True
+    invocation = fake_provider2.invocations[0]
+    
+    # Check that the evidence boundary instruction is present
+    messages = invocation["messages"]
+    last_message = messages[-1]["content"]
+    assert "CRITICAL GROUNDING BOUNDARY FOR FOLLOW-UP TRANSFORMATION" in last_message
+    assert "COMPLETE and EXCLUSIVE factual source" in last_message
+    assert "MUST NOT introduce any person, framework, concept" in last_message
+    
+    # Verify the prompt contains the Gustaf evidence
+    assert "Gustaf Alströmer" in last_message or "Gustaf" in last_message
+    assert "focus on product first" in last_message
+
+
 # -----------------------------------------------------------------------------
 # 4. Session Isolation & Conversation Context Limit
 # -----------------------------------------------------------------------------

@@ -106,38 +106,38 @@ Use these word budgets as structural guidance. To achieve the 1,125–1,375 word
    - Paragraph 2: Sets up the problem space: why conventional product advice leads teams astray and framing the core question
 
 2. **Thesis & Framework Overview** (~150–170 words, 2 paragraphs)
-   - Paragraph 1: State the central thesis introducing the Four Fits framework
-   - Paragraph 2: Detail why achieving product-market fit in isolation is insufficient and why all four fits must interlock
+   - Paragraph 1: State the central thesis introducing the core framework or concept from the transcript evidence
+   - Paragraph 2: Detail why achieving the primary objective in isolation is insufficient and why all components must interlock
 
-3. **Fit 1: Market-Product Fit** (~140–160 words, 2–3 paragraphs)
-   - Paragraph 1: Deep explanation of market demand, target audience characteristics, and the urgency of the problem
-   - Paragraph 2: Grounded analysis of product value proposition and retention metrics (e.g. flattening cohort retention)
-   - Paragraph 3: Specific guest examples and how this fit connects to the central thesis
+3. **Component 1: First Core Element** (~140–160 words, 2–3 paragraphs)
+   - Paragraph 1: Deep explanation of the first component, grounded in transcript evidence
+   - Paragraph 2: Grounded analysis of metrics or indicators related to this component
+   - Paragraph 3: Specific guest examples and how this component connects to the central thesis
 
-4. **Fit 2: Product-Channel Fit** (~140–160 words, 2–3 paragraphs)
-   - Paragraph 1: Grounded explanation of how product attributes dictate distribution channels and viral loops
-   - Paragraph 2: Emphasize the core insight: products must be built to fit channels, because channels do not mold to products
-   - Paragraph 3: Real podcast examples of distribution constraints (SEO, virality, paid) and leaky bucket symptoms
+4. **Component 2: Second Core Element** (~140–160 words, 2–3 paragraphs)
+   - Paragraph 1: Grounded explanation of how this component relates to others
+   - Paragraph 2: Emphasize the core insight from the transcript evidence
+   - Paragraph 3: Real podcast examples illustrating this component
 
-5. **Fit 3: Channel-Model Fit** (~140–160 words, 2–3 paragraphs)
-   - Paragraph 1: Grounded explanation of the alignment between monetization model (ARPU) and channel acquisition costs (CAC)
-   - Paragraph 2: Detail the unit economics math: why high-touch sales cannot work with low ARPU and vice-versa
-   - Paragraph 3: Podcast guest perspectives on sustainable monetization channels
+5. **Component 3: Third Core Element** (~140–160 words, 2–3 paragraphs)
+   - Paragraph 1: Grounded explanation of the alignment between this component and execution factors
+   - Paragraph 2: Detail the economic or operational math from the transcripts
+   - Paragraph 3: Podcast guest perspectives on this component
 
-6. **Fit 4: Model-Market Fit** (~140–160 words, 2–3 paragraphs)
-   - Paragraph 1: Grounded explanation of how pricing models must align with market size and total addressable customers
-   - Paragraph 2: Explain the ARPU vs. customer count trade-off required to reach scale
-   - Paragraph 3: Case examples from the transcripts illustrating model-market misalignment
+6. **Component 4: Fourth Core Element** (~140–160 words, 2–3 paragraphs)
+   - Paragraph 1: Grounded explanation of how this component must align with market or scale requirements
+   - Paragraph 2: Explain the trade-offs required to achieve scale
+   - Paragraph 3: Case examples from the transcripts illustrating misalignment
 
-7. **Why Startups Fail: The Breakdown of Interlocking Fits** (~180–200 words, 2–3 paragraphs)
-   - Paragraph 1: Explain the domino effect: how shifting one fit (e.g., changing product or channel) breaks the other three
-   - Paragraph 2: Detail why treating product-market fit as static or permanent causes post-PMF stalls
-   - Paragraph 3: 2–4 concrete diagnostic signals that growth leaders should monitor
+7. **Why Failures Occur: The Breakdown of Interlocking Components** (~180–200 words, 2–3 paragraphs)
+   - Paragraph 1: Explain the domino effect: how shifting one component breaks the others
+   - Paragraph 2: Detail why treating the framework as static causes post-implementation stalls
+   - Paragraph 3: 2–4 concrete diagnostic signals from the transcripts
 
 8. **Practical Takeaways & Concluding Playbook** (~180–200 words, 2–3 paragraphs)
-   - Paragraph 1: Actionable diagnostic checklist for product teams to audit all four fits simultaneously
-   - Paragraph 2: How growth leaders institutionalize continuous re-fitting as markets and channels evolve
-   - Paragraph 3: Memorable closing resolution echoing the opening hook with a lasting strategic takeaway
+   - Paragraph 1: Actionable diagnostic checklist from the transcript evidence
+   - Paragraph 2: How growth leaders institutionalize continuous refinement
+   - Paragraph 3: Memorable closing resolution echoing the opening hook
 
 **Execution Requirements**:
 - You MUST write 2 to 3 substantive paragraphs for EVERY section (18–22 paragraphs total). Under NO circumstances should any section consist of only 1 paragraph.
@@ -146,6 +146,7 @@ Use these word budgets as structural guidance. To achieve the 1,125–1,375 word
 - The complete essay MUST be between 1,125 and 1,375 words (target: ~1,250 words).
 - Use H2 markdown headings for all 8 sections.
 - Strictly adhere to transcript evidence: do not invent quotes, facts, or guest claims.
+- CRITICAL: The section headings and word budgets above are a WRITING TEMPLATE, not factual source material. Do not introduce any framework, concept, person, or organization not present in the transcript evidence. If the evidence describes a specific framework, use that framework's actual name and components. If the evidence does not describe a framework, do not invent one. Structure your essay around what the evidence actually contains.
 """
 
 LINKEDIN_STRUCTURE = """
