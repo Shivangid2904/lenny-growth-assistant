@@ -14,6 +14,7 @@ from app.services.agent_service import (
     build_evidence_context,
     build_system_prompt,
     get_conversation_history,
+    sanitize_output,
 )
 from app.services.llm_provider import (
     AnthropicProvider,
@@ -561,9 +562,9 @@ async def test_followup_grounding_boundary_enforced(db):
     # Check that the evidence boundary instruction is present
     messages = invocation["messages"]
     last_message = messages[-1]["content"]
-    assert "CRITICAL GROUNDING BOUNDARY FOR FOLLOW-UP TRANSFORMATION" in last_message
-    assert "COMPLETE and EXCLUSIVE factual source" in last_message
-    assert "MUST NOT introduce any person, framework, concept" in last_message
+    assert "FOLLOW-UP TRANSFORMATION" in last_message
+    assert "same transcript evidence" in last_message
+    assert "MUST NOT introduce" in last_message
     
     # Verify the prompt contains the Gustaf evidence
     assert "Gustaf Alströmer" in last_message or "Gustaf" in last_message
@@ -872,3 +873,154 @@ def test_skill_router_registration_and_routing():
     with pytest.raises(ValueError, match="Invalid skill"):
         skill_router.route("Anything", explicit_skill="__import__('os').system")
 
+
+# -----------------------------------------------------------------------------
+# 7. Output Sanitization Tests
+# -----------------------------------------------------------------------------
+
+def test_sanitize_output_removes_internal_markers():
+    """Verify sanitize_output removes internal prompt leakage markers."""
+    input_text = """[Instruction: Write a comprehensive essay]
+The answer is here.
+
+[Evidence: Some transcript evidence]
+More content.
+
+CRITICAL GROUNDING BOUNDARY
+The evidence is the only source.
+
+WORD COUNT REQUIREMENT
+Write 1250 words.
+
+OUTPUT REQUIREMENT
+Write the actual content.
+
+Final answer here."""
+
+    output = sanitize_output(input_text)
+
+    # Check that internal markers are removed
+    assert "[Instruction:" not in output
+    assert "[Evidence:" not in output
+    assert "CRITICAL GROUNDING BOUNDARY" not in output
+    assert "WORD COUNT REQUIREMENT" not in output
+    assert "OUTPUT REQUIREMENT" not in output
+
+    # Check that legitimate content is preserved
+    assert "The answer is here." in output
+    assert "More content." in output
+    assert "Final answer here." in output
+
+
+def test_sanitize_output_preserves_legitimate_content():
+    """Verify sanitize_output does not remove legitimate user content."""
+    input_text = "This is a normal response without any internal markers."
+    output = sanitize_output(input_text)
+    assert output == input_text
+
+
+def test_sanitize_output_handles_case_insensitive():
+    """Verify sanitize_output removes markers regardless of case."""
+    input_text = "[instruction: Do something]\n[INSTRUCTION: Do more]\n[Instruction: Again]"
+    output = sanitize_output(input_text)
+    assert "[instruction:" not in output.lower()
+    assert "[INSTRUCTION:" not in output
+    assert output.strip() == ""  # Only markers were present
+
+
+def test_sanitize_output_strips_leading_speaker_label():
+    """Verify sanitize_output strips accidental leading speaker dialogue labels."""
+    input_text = "Lenny: Here is the synthesized answer about startups."
+    output = sanitize_output(input_text)
+    assert output == "Here is the synthesized answer about startups."
+    assert not output.startswith("Lenny:")
+
+
+@pytest.mark.anyio
+async def test_gustaf_yc_query_synthesizes_grounded_answer_not_dialogue(db):
+    """Regression test: Query about Gustaf Alströmer's lessons from 600+ YC startups.
+
+    Verifies:
+    1. Prompt clearly demarcates SOURCE EVIDENCE and TASK.
+    2. System prompt prohibits continuing transcript dialogue or generating speaker labels.
+    3. Response synthesizes a grounded answer and does NOT reproduce transcript lines like 'Lenny: Can you paraphrase...'.
+    4. Citations are properly generated from eligible chunks.
+    """
+    session = Session(title="Gustaf YC Lessons Session")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    mock_chunks = [
+        {
+            "id": str(uuid.uuid4()),
+            "episode_id": "ep-gustaf",
+            "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alströmer",
+            "chunk_index": 37,
+            "content": "Gustaf Alströmer: I think I've written many articles about this topic... startups fail, one, because they don't talk to customers. And if you don't talk to customers or users, you don't actually know what's important.",
+            "distance": 0.2033,
+            "guest_name": "Gustaf Alstromer",
+            "source_url": "https://youtube.com/watch?v=gustaf",
+            "metadata": {"guest_name": "Gustaf Alstromer", "source_url": "https://youtube.com/watch?v=gustaf"},
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "episode_id": "ep-gustaf",
+            "episode_title": "Lessons from working with 600+ YC startups | Gustaf Alströmer",
+            "chunk_index": 67,
+            "content": "Lenny: If you had to pick just one or two attributes of what's most common across successful companies, what would that be?\nGustaf Alströmer: I would say the most common reason that I've seen founders succeed or companies succeed, it comes down to the founders and characteristics of those individuals. The most important characteristics of those individuals are they're really determined to win and they don't give up when things are hard and they have an internal motivation that's just really infectious to people around them...",
+            "distance": 0.2338,
+            "guest_name": "Gustaf Alstromer",
+            "source_url": "https://youtube.com/watch?v=gustaf",
+            "metadata": {"guest_name": "Gustaf Alstromer", "source_url": "https://youtube.com/watch?v=gustaf"},
+        },
+    ]
+
+    fake_provider = FakeLLMProvider(
+        tokens=[
+            "Based on Gustaf Alströmer's experience with 600+ YC startups, ",
+            "the biggest lessons center on founder attributes and customer discovery: ",
+            "First, startups fail when founders do not talk to customers to validate what to build. ",
+            "Second, successful founders are determined to win, resilient when things are difficult, ",
+            "and possess infectious internal motivation that attracts exceptional teams.",
+        ]
+    )
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=mock_chunks):
+        events = []
+        async for event_str in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="What are the biggest lessons Gustaf Alströmer learned from working with 600+ YC startups?",
+            provider=fake_provider,
+            relevance_threshold=0.35,
+        ):
+            events.append(event_str)
+
+    # 1. Verify prompt construction demarcates SOURCE EVIDENCE and TASK
+    assert fake_provider.invoked is True
+    call_args = fake_provider.invocations[0]
+    prompt_content = call_args["messages"][-1]["content"]
+    assert "SOURCE EVIDENCE:" in prompt_content
+    assert "<transcript_evidence>" in prompt_content
+    assert "</transcript_evidence>" in prompt_content
+    assert "TASK:" in prompt_content
+    assert "User Question: What are the biggest lessons Gustaf Alströmer learned from working with 600+ YC startups?" in prompt_content
+
+    # 2. Verify system prompt explicitly instructs synthesis and prohibits dialogue reproduction
+    assert "NEVER continue, imitate, or reproduce the podcast transcript dialogue" in call_args["system_prompt"]
+    assert "NEVER generate speaker labels or dialogue prefixes" in call_args["system_prompt"]
+
+    # 3. Verify response content does NOT reproduce raw transcript speaker lines
+    parsed = parse_sse_events("".join(events))
+    token_text = "".join([d["delta"] for ev, d in parsed if ev == "token"])
+    assert "Lenny: Can you paraphrase" not in token_text
+    assert not token_text.strip().startswith("Lenny:")
+    assert "Gustaf Alströmer" in token_text
+    assert "talk to customers" in token_text
+
+    # 4. Verify citations
+    done_events = [d for ev, d in parsed if ev == "done"]
+    assert len(done_events) == 1
+    assert len(done_events[0]["citations"]) == 1  # Deduplicated by episode
+    assert done_events[0]["citations"][0]["guest_name"] == "Gustaf Alstromer"

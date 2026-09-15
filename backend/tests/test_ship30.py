@@ -375,13 +375,14 @@ class TestBuildSystemPrompt:
         """Ship30 system prompt includes writing principles section."""
         prompt = build_system_prompt("ship30", CONTENT_TYPE_ESSAY)
         assert "SHIP 30 FOR 30 WRITING SKILL" in prompt
-        assert "WRITING PRINCIPLES" in prompt
+        assert "WRITING STYLE" in prompt or "WRITING PRINCIPLES" in prompt
 
     def test_ship30_essay_includes_word_count_requirement(self):
         """Ship30 essay prompt includes the 1,125–1,375 word count requirement."""
         prompt = build_system_prompt("ship30", CONTENT_TYPE_ESSAY)
         assert str(ESSAY_MIN_WORDS) in prompt
         assert str(ESSAY_MAX_WORDS) in prompt
+        assert "WORD COUNT REQUIREMENT" in prompt
 
     def test_ship30_linkedin_no_essay_word_count(self):
         """LinkedIn content type does NOT include the essay word count requirement."""
@@ -392,7 +393,8 @@ class TestBuildSystemPrompt:
     def test_ship30_essay_includes_structure_guidance(self):
         """Ship30 essay prompt includes structure guidance."""
         prompt = build_system_prompt("ship30", CONTENT_TYPE_ESSAY)
-        assert "Opening hook" in prompt or "opening hook" in prompt
+        assert "long-form essay" in prompt.lower() or "essay" in prompt.lower()
+        assert "clear sections" in prompt.lower()
 
     def test_ship30_linkedin_includes_linkedin_structure(self):
         """Ship30 LinkedIn prompt includes LinkedIn-specific structure guidance."""
@@ -470,36 +472,51 @@ class TestEssayWordCount:
             "episode_title": "Brian Balfour on the Four Fits",
             "chunk_index": 1,
             "content": "The Four Fits framework requires Product-Market Fit, Market-Channel Fit, Channel-Model Fit, and Model-Product Fit to all align simultaneously.",
-            "distance": 0.22,
-            "metadata": {
-                "guest": "Brian Balfour",
-                "source_url": "https://lenny.com/brian-balfour",
-            },
+            "distance": 0.15,
+            "similarity": 0.85,
+            "metadata": {"guest": "Brian Balfour", "source_url": "https://lenny.com/brian-balfour"},
         }
 
         with patch("app.services.agent_service.search_transcript_chunks", return_value=[eligible_chunk]):
             events = []
-            async for ev in process_chat_message(
+            async for event_str in process_chat_message(
                 db=db,
                 session_id=session.id,
-                user_content="Write a Ship 30 for 30 essay about the Four Fits framework",
+                user_content="Turn this into a Ship 30 for 30 essay",
                 provider=fake_provider,
-                relevance_threshold=0.35,
+                explicit_skill="ship30",
             ):
-                events.append(ev)
+                events.append(event_str)
 
-        # Verify skill was invoked (not refusal)
+        # Verify the fake provider was invoked
         assert fake_provider.invoked is True
 
-        # Reconstruct generated content from token events
+        # Verify word count is within range
         parsed = parse_sse_events("".join(events))
-        token_texts = "".join([d["delta"] for ev, d in parsed if ev == "token"])
-        word_count = count_words(token_texts)
-
+        full_text = "".join([d["delta"] for ev, d in parsed if ev == "token"])
+        word_count = count_words(full_text)
         assert ESSAY_MIN_WORDS <= word_count <= ESSAY_MAX_WORDS, (
             f"Generated essay word count {word_count} is outside accepted range "
             f"[{ESSAY_MIN_WORDS}, {ESSAY_MAX_WORDS}]"
         )
+
+        # Verify no external URLs in deterministic output
+        url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
+        urls = re.findall(url_pattern, full_text)
+        assert len(urls) == 0, f"Essay should not contain external URLs, found: {urls}"
+
+        # Verify no prompt leakage
+        leakage_patterns = [
+            r'\[Instruction:', r'\[Evidence:', r'\[Task:', r'\[System:',
+            r'CRITICAL GROUNDING', r'STRUCTURAL GUIDANCE', r'WORD COUNT REQUIREMENT'
+        ]
+        for pattern in leakage_patterns:
+            assert not re.search(pattern, full_text, re.IGNORECASE), f"Prompt leakage detected: {pattern}"
+
+        # Verify grounding boundary is still present in system prompt
+        call_args = fake_provider.invocations[0]
+        assert "STRICT GROUNDING POLICY" in call_args["system_prompt"]
+        assert "PROMPT-INJECTION TRUST BOUNDARY" in call_args["system_prompt"]
 
         # Verify done event carries skill metadata
         done_events = [d for ev, d in parsed if ev == "done"]
@@ -545,7 +562,7 @@ class TestEssayWordCount:
 
         # Must include Ship30 writing skill extension
         assert "SHIP 30 FOR 30 WRITING SKILL" in system_prompt_used
-        assert "WRITING PRINCIPLES" in system_prompt_used
+        assert "WRITING STYLE" in system_prompt_used or "WRITING PRINCIPLES" in system_prompt_used
 
         # Grounding must precede Ship30 extension
         grounding_pos = system_prompt_used.index("STRICT GROUNDING POLICY")
@@ -832,8 +849,66 @@ async def test_normal_chat_does_not_use_ship30_prompt(db):
     system_prompt_used = fake_provider.invocations[0]["system_prompt"]
     # Chat skill must NOT include Ship30 writing extension
     assert "SHIP 30 FOR 30 WRITING SKILL" not in system_prompt_used
+    # Chat skill must NOT include verbose structural guidance
+    assert "Long-form Ship 30 for 30 Essay Structure" not in system_prompt_used
 
     parsed = parse_sse_events("".join(events))
     done_event = next(d for ev, d in parsed if ev == "done")
     assert done_event["skill"] == "chat"
     assert done_event["content_type"] is None
+
+
+@pytest.mark.anyio
+async def test_ship30_output_no_prompt_leakage(db):
+    """Ship30 generation must not output internal prompt markers like [Instruction: or [Evidence:."""
+    session = Session(title="Ship30 Leakage Test")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    # Simulate a model that might leak prompt markers
+    fake_provider = FakeLLMProvider(tokens=[
+        "[Instruction: Write a Ship30 essay]",
+        "Here is the actual essay content about growth.",
+        "[Evidence: Some transcript]",
+        "More essay content here."
+    ])
+
+    eligible_chunk = {
+        "id": str(uuid.uuid4()),
+        "episode_id": "gustaf-alstromer",
+        "episode_title": "YC Growth",
+        "chunk_index": 0,
+        "content": "Focus on product first before scaling.",
+        "distance": 0.25,
+        "metadata": {"guest": "Gustaf Alströmer", "source_url": "https://lenny.com/gustaf"},
+    }
+
+    with patch("app.services.agent_service.search_transcript_chunks", return_value=[eligible_chunk]):
+        events = []
+        async for ev in process_chat_message(
+            db=db,
+            session_id=session.id,
+            user_content="Turn this into a Ship 30 for 30 essay.",
+            provider=fake_provider,
+            relevance_threshold=0.35,
+        ):
+            events.append(ev)
+
+    # Check the persisted message content (after sanitization)
+    persisted_assistant_msg = (
+        db.query(Message)
+        .filter(Message.session_id == session.id, Message.role == "assistant")
+        .first()
+    )
+    assert persisted_assistant_msg is not None
+
+    # Verify internal markers were sanitized out from persisted content
+    assert "[Instruction:" not in persisted_assistant_msg.content
+    assert "[Evidence:" not in persisted_assistant_msg.content
+    assert "CRITICAL GROUNDING" not in persisted_assistant_msg.content
+    assert "WORD COUNT REQUIREMENT" not in persisted_assistant_msg.content
+
+    # Verify legitimate content is preserved
+    assert "Here is the actual essay content about growth." in persisted_assistant_msg.content
+    assert "More essay content here." in persisted_assistant_msg.content

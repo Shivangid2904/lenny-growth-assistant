@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 import httpx
 import anthropic
 
@@ -45,6 +45,7 @@ class LLMProvider(ABC):
         system_prompt: str,
         messages: List[Dict[str, str]],
         timeout: Optional[float] = None,
+        num_predict: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         """Stream incremental text tokens from the reasoning model.
 
@@ -84,8 +85,10 @@ class AnthropicProvider(LLMProvider):
         system_prompt: str,
         messages: List[Dict[str, str]],
         timeout: Optional[float] = None,
+        num_predict: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         eff_timeout = timeout or settings.model_timeout_seconds
+        # num_predict is ignored for Anthropic (uses different token limits)
 
         if not self._api_key or not self._api_key.strip():
             logger.warning(
@@ -175,6 +178,7 @@ class OllamaProvider(LLMProvider):
         system_prompt: str,
         messages: List[Dict[str, str]],
         timeout: Optional[float] = None,
+        num_predict: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         eff_timeout = timeout or settings.model_timeout_seconds
         url = f"{self._base_url}/api/chat"
@@ -183,10 +187,18 @@ class OllamaProvider(LLMProvider):
         for msg in messages:
             ollama_messages.append({"role": msg["role"], "content": msg["content"]})
 
+        options: Dict[str, Any] = {
+            "num_ctx": 8192,
+            "temperature": 0.3,
+        }
+        if num_predict:
+            options["num_predict"] = num_predict
+
         payload = {
             "model": self._model,
             "messages": ollama_messages,
             "stream": True,
+            "options": options,
         }
 
         try:
@@ -264,12 +276,14 @@ class FakeLLMProvider(LLMProvider):
         system_prompt: str,
         messages: List[Dict[str, str]],
         timeout: Optional[float] = None,
+        num_predict: Optional[int] = None,
     ) -> AsyncGenerator[str, None]:
         self.invoked = True
         self.invocations.append({
             "system_prompt": system_prompt,
             "messages": messages,
             "timeout": timeout,
+            "num_predict": num_predict,
         })
 
         if self._error_to_raise:

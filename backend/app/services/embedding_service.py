@@ -31,7 +31,7 @@ class EmbeddingService:
         timeout: float = 30.0,
     ):
         self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
-        self.model = model or settings.ollama_embedding_model or settings.embedding_model
+        self.model = model or settings.ollama_embed_model or settings.ollama_embedding_model or settings.embedding_model
         self.expected_dim = expected_dim or settings.embedding_dimension
         self.timeout = timeout
         self._client = httpx.Client(timeout=self.timeout)

@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"  # Local dev default; Docker overrides via compose
     ollama_model: str = "llama3.2:latest"
     ollama_embedding_model: str = "nomic-embed-text"
+    ollama_embed_model: Optional[str] = None
     embedding_model: str = "nomic-embed-text"
     embedding_dimension: int = 768
 

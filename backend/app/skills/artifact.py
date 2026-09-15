@@ -60,37 +60,28 @@ def is_artifact_intent(message: str) -> bool:
 def build_artifact_system_prompt(content_type: str) -> str:
     """Build the specialized system prompt for artifact generation."""
     base_guidance = (
-        "\n\nARTIFACT GENERATION PRINCIPLES:\n"
-        "1. You are producing a standalone, self-contained visual or structured ARTIFACT.\n"
-        "2. All concepts, guest quotes, frameworks, stages, and metrics MUST be strictly grounded in the provided transcript evidence.\n"
-        "3. Do NOT invent outside framework steps or guest claims.\n"
-        "4. Focus on clarity, visual hierarchy, elegance, and utility for product leaders.\n"
+        "\n\nARTIFACT GENERATION:\n"
+        "You are creating a standalone visual or structured artifact.\n"
+        "All concepts, quotes, frameworks, and metrics MUST be strictly grounded in the provided transcript evidence.\n"
+        "Do NOT invent frameworks, steps, or claims not present in the evidence.\n"
     )
 
     if content_type == ARTIFACT_TYPE_HTML:
         specific = (
-            "\nHTML/CSS ARTIFACT SPECIFICATIONS:\n"
-            "- Output a complete, self-contained HTML artifact designed for a sandboxed preview.\n"
-            "- Include an embedded <style> block with modern, polished CSS:\n"
-            "  * Clean typography (e.g. system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif)\n"
-            "  * Harmonious color palette (slate/indigo/neutral tones, subtle borders, gentle shadows)\n"
-            "  * Responsive layout (cards, grid, flexbox, comparison tables, progress steps)\n"
-            "- SECURITY REQUIREMENT:\n"
-            "  * NEVER include <script> tags or any JavaScript code.\n"
-            "  * NEVER use inline event handlers (such as onclick, onload, onerror).\n"
-            "  * The artifact must be purely HTML and CSS.\n"
-            "- Wrap your HTML artifact inside a ```html ... ``` code block, or provide clean HTML directly.\n"
+            "\nHTML ARTIFACT:\n"
+            "- Output a complete, self-contained HTML artifact with embedded CSS.\n"
+            "- Use modern, clean styling (system fonts, harmonious colors, responsive layout).\n"
+            "- SECURITY: NEVER include <script> tags or JavaScript event handlers (onclick, onload, etc.).\n"
+            "- The artifact must be purely HTML and CSS.\n"
         )
     else:
         specific = (
-            "\nMARKDOWN ARTIFACT SPECIFICATIONS:\n"
-            "- Output a comprehensive, structured Markdown document.\n"
-            "- Use clear headers (# Title, ## Section, ### Sub-section), bulleted lists, and structured comparison tables.\n"
-            "- Highlight key takeaways, framework stages, and guest attributions.\n"
-            "- Wrap your markdown artifact inside a ```markdown ... ``` code block, or provide clean Markdown directly.\n"
+            "\nMARKDOWN ARTIFACT:\n"
+            "- Output a structured Markdown document with clear headers, lists, and tables.\n"
+            "- Highlight key takeaways and framework stages.\n"
         )
 
-    return base_guidance + specific
+    return base_guidance + specific + "\n\nOUTPUT REQUIREMENT: Write the actual artifact content. Do NOT describe your instructions or use labels like [Instruction] or [Evidence]."
 
 
 def extract_artifact_data(raw_content: str, requested_type: str, query: str = "") -> Dict[str, Any]:
